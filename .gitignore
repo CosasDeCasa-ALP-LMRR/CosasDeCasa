@@ -1,0 +1,9 @@
+# Dependencias
+node_modules/
+frontend-react/node_modules/
+backend-nestjs/node_modules/
+
+# Entornos y compilados
+.env
+dist/
+build/
