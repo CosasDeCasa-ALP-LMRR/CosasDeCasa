@@ -1,0 +1,43 @@
+{
+  "name": "cosasdecasa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CosasDeCasa-ALP-LMRR/CosasDeCasa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CosasDeCasa-ALP-LMRR/CosasDeCasa/issues"
+  },
+  "homepage": "https://github.com/CosasDeCasa-ALP-LMRR/CosasDeCasa#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "eslint": "^10.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.3"
+  },
+  "lint-staged": {
+    "frontend-react/**/*.{ts,tsx}": [
+      "npm run lint --prefix frontend-react",
+      "npm run format --prefix frontend-react"
+    ],
+    "backend-nestjs/**/*.ts": [
+      "npm run lint --prefix backend-nestjs",
+      "npm run format --prefix backend-nestjs"
+    ],
+    "**/*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}
