@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db-cosasdecasa:
+    image: postgres:15-alpine
+    container_name: cosasdecasa_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: cosasdecasa_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_cosasdecasa:/var/lib/postgresql/data
+
+volumes:
+  pgdata_cosasdecasa:
