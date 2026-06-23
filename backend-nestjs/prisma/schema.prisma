@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------
+// ENUMS (Dominios de valores restringidos)
+// ---------------------------------------------------------
+enum RolUsuario {
+  CLIENTE
+  PROFESIONAL
+  AUDITOR
+  SOPORTE
+}
+
+enum EstadoVerificacion {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  COMPLETADA
+}
+
+enum TipoDocumento {
+  INE
+  CEDULA
+  PORTAFOLIO
+}
+
+// ---------------------------------------------------------
+// ENTIDADES PRINCIPALES
+// ---------------------------------------------------------
+
+model Usuario {
+  id               String       @id @default(uuid())
+  nombre           String
+  correo           String       @unique
+  passwordHash     String
+  curp             String?      @unique
+  rol              RolUsuario   @default(CLIENTE)
+  
+  // Borrado lógico para Derechos ARCO
+  activo           Boolean      @default(true) 
+  fechaCreacion    DateTime     @default(now())
+  fechaActualizacion DateTime   @updatedAt
+
+  // Relaciones
+  perfil           Perfil?
+  solicitudesHechas Solicitud[] @relation("ClienteSolicitudes")
+  solicitudesRecibidas Solicitud[] @relation("ProfesionalSolicitudes")
+  auditorias       BitacoraAuditoria[]
+  resenasDadas     Resena[]     @relation("ClienteResenas")
+  resenasRecibidas Resena[]     @relation("ProfesionalResenas")
+}
+
+model Perfil {
+  id                   String             @id @default(uuid())
+  usuarioId            String             @unique
+  usuario              Usuario            @relation(fields: [usuarioId], references: [id])
+  
+  telefono             String?
+  biografia            String?            @db.Text
+  categoriaPrincipal   String?
+  etiquetas            String[]           // Array de habilidades (ej. ["Tuberías", "Fugas"])
+  
+  // Ubicación simplificada para búsqueda exacta o por zona (Sin PostGIS)
+  codigoPostal         String?
+  municipio            String?
+  estadoRep            String?
+  
+  aceptaUrgencias      Boolean            @default(false)
+  estadoVerificacion   EstadoVerificacion @default(PENDIENTE)
+  promedioCalificacion Float              @default(0.0)
+
+  // Relaciones
+  documentos           Documento[]
+}
+
+model Documento {
+  id               String        @id @default(uuid())
+  perfilId         String
+  perfil           Perfil        @relation(fields: [perfilId], references: [id])
+  tipo             TipoDocumento
+  urlArchivo       String        // URL del bucket o servidor donde se guardó la imagen
+  fechaSubida      DateTime      @default(now())
+}
+
+model Solicitud {
+  id               String          @id @default(uuid())
+  clienteId        String
+  cliente          Usuario         @relation("ClienteSolicitudes", fields: [clienteId], references: [id])
+  profesionalId    String
+  profesional      Usuario         @relation("ProfesionalSolicitudes", fields: [profesionalId], references: [id])
+  
+  estado           EstadoSolicitud @default(PENDIENTE)
+  descripcion      String          @db.Text
+  esUrgencia       Boolean         @default(false)
+  
+  fechaCreacion    DateTime        @default(now())
+  fechaActualizacion DateTime      @updatedAt
+}
+
+model Resena {
+  id               String   @id @default(uuid())
+  clienteId        String
+  cliente          Usuario  @relation("ClienteResenas", fields: [clienteId], references: [id])
+  profesionalId    String
+  profesional      Usuario  @relation("ProfesionalResenas", fields: [profesionalId], references: [id])
+  
+  calificacion     Int      // Valor de 1 a 5
+  comentario       String?  @db.Text
+  fechaCreacion    DateTime @default(now())
+}
+
+model BitacoraAuditoria {
+  id               String   @id @default(uuid())
+  auditorId        String
+  auditor          Usuario  @relation(fields: [auditorId], references: [id])
+  accion           String   // Ej. "APROBO_PERFIL", "RECHAZO_DOCUMENTO"
+  entidadAfectada  String   // Ej. "PERFIL_ID_123"
+  fechaAccion      DateTime @default(now())
+}
