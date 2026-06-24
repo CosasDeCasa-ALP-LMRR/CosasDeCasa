@@ -86,6 +86,7 @@ model Perfil {
   aceptaUrgencias      Boolean            @default(false)
   estadoVerificacion   EstadoVerificacion @default(PENDIENTE)
   promedioCalificacion Float              @default(0.0)
+  diasYHorarios        Json?              // Configuración de disponibilidad (días y horas)
 
   // Relaciones
   documentos           Documento[]
@@ -94,7 +95,7 @@ model Perfil {
 model Documento {
   id               String        @id @default(uuid())
   perfilId         String
-  perfil           Perfil        @relation(fields: [perfilId], references: [id])
+  perfil           Perfil        @relation(fields: [perfilId], references: [id], onDelete: Cascade)
   tipo             TipoDocumento
   urlArchivo       String        // URL del bucket o servidor donde se guardó la imagen
   fechaSubida      DateTime      @default(now())
