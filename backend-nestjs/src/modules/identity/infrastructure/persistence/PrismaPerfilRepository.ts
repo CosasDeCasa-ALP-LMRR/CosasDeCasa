@@ -13,7 +13,7 @@ import { Perfil as PrismaPerfil, Documento as PrismaDocumento } from '@prisma/cl
 
 @Injectable()
 export class PrismaPerfilRepository implements IPerfilRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   private mapToDomain(
     prismaPerfil: PrismaPerfil & { documentos?: PrismaDocumento[] }
@@ -34,12 +34,12 @@ export class PrismaPerfilRepository implements IPerfilRepository {
       prismaPerfil.diasYHorarios,
       prismaPerfil.documentos
         ? prismaPerfil.documentos.map((d) => ({
-            id: d.id,
-            perfilId: d.perfilId,
-            tipo: d.tipo,
-            urlArchivo: d.urlArchivo,
-            fechaSubida: d.fechaSubida,
-          }))
+          id: d.id,
+          perfilId: d.perfilId,
+          tipo: d.tipo,
+          urlArchivo: d.urlArchivo,
+          fechaSubida: d.fechaSubida,
+        }))
         : []
     );
   }
@@ -125,5 +125,36 @@ export class PrismaPerfilRepository implements IPerfilRepository {
     });
 
     return this.mapToDomain(prismaPerfil);
+  }
+
+  async anonymizeAccount(usuarioId: string): Promise<void> {
+    const uniqueSuffix = Date.now().toString();
+
+    //primero actualizamos los datos básicos del Usuario
+    await this.prismaService.usuario.update({
+      where: { id: usuarioId },
+      data: {
+        activo: false,
+        nombre: 'Usuario Borrado',
+        correo: `borrado_${uniqueSuffix}@cosasdecasa.com`,
+        passwordHash: 'ANONIMIZADO',
+        curp: null,
+      },
+    });
+
+    //intentamos actualizar el Perfil solo si existe
+    await this.prismaService.perfil.updateMany({
+      where: { usuarioId: usuarioId },
+      data: {
+        telefono: null,
+        biografia: 'Esta cuenta ha sido eliminada a petición del usuario (Derechos ARCO).',
+        categoriaPrincipal: null,
+        codigoPostal: null,
+        municipio: null,
+        estadoRep: null,
+        estadoVerificacion: 'RECHAZADO',
+        etiquetas: [],
+      },
+    });
   }
 }

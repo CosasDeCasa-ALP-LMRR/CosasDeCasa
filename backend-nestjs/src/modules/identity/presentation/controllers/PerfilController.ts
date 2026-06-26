@@ -31,6 +31,7 @@ import { UpdatePerfilUseCase } from '../../application/use-cases/UpdatePerfil.us
 import { AddDocumentoUseCase } from '../../application/use-cases/AddDocumento.use-case';
 import { DeleteDocumentoUseCase } from '../../application/use-cases/DeleteDocumento.use-case';
 import { VerifyPerfilUseCase } from '../../application/use-cases/VerifyPerfil.use-case';
+import { CancelAccountUseCase } from '../../application/use-cases/CancelAccount.use-case';
 
 @Controller('identity/perfiles')
 export class PerfilController {
@@ -40,7 +41,8 @@ export class PerfilController {
     private readonly addDocumentoUseCase: AddDocumentoUseCase,
     private readonly deleteDocumentoUseCase: DeleteDocumentoUseCase,
     private readonly verifyPerfilUseCase: VerifyPerfilUseCase,
-  ) {}
+    private readonly cancelAccountUseCase: CancelAccountUseCase,
+  ) { }
 
   @Get('mi')
   @UseGuards(MockAuthGuard, RolesGuard)
@@ -95,5 +97,17 @@ export class PerfilController {
   @Roles('AUDITOR')
   async verifyPerfil(@Param('id') id: string, @Body() dto: VerifyPerfilDto) {
     return await this.verifyPerfilUseCase.execute(id, dto.estado);
+  }
+
+  @Delete('cuenta')
+  @UseGuards(MockAuthGuard)
+  async cancelAccount(@Req() req: any) {
+    const usuarioId = req.user.id;
+    await this.cancelAccountUseCase.execute(usuarioId);
+
+    return {
+      message: 'Cuenta eliminada y datos anonimizados correctamente en cumplimiento de Derechos ARCO.',
+      status: 'success'
+    };
   }
 }

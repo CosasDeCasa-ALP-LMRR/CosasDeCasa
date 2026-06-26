@@ -12,4 +12,5 @@ export abstract class IPerfilRepository {
   abstract findByUsuarioId(usuarioId: string): Promise<Perfil | null>;
   abstract save(perfil: Perfil): Promise<Perfil>;
   abstract update(id: string, data: Partial<Perfil>): Promise<Perfil>;
+  abstract anonymizeAccount(usuarioId: string): Promise<void>;
 }

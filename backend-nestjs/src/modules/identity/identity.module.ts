@@ -18,6 +18,7 @@ import { AddDocumentoUseCase } from './application/use-cases/AddDocumento.use-ca
 import { DeleteDocumentoUseCase } from './application/use-cases/DeleteDocumento.use-case';
 import { VerifyPerfilUseCase } from './application/use-cases/VerifyPerfil.use-case';
 import { PerfilController } from './presentation/controllers/PerfilController';
+import { CancelAccountUseCase } from './application/use-cases/CancelAccount.use-case';
 
 @Module({
   controllers: [PerfilController],
@@ -39,12 +40,14 @@ import { PerfilController } from './presentation/controllers/PerfilController';
     AddDocumentoUseCase,
     DeleteDocumentoUseCase,
     VerifyPerfilUseCase,
+    CancelAccountUseCase,
   ],
   exports: [
     IPerfilRepository,
     IDocumentoRepository,
     IStorageAdapter,
     GetPerfilUseCase,
+    CancelAccountUseCase,
   ],
 })
 export class IdentityModule {}
