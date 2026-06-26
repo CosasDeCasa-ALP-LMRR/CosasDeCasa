@@ -4,6 +4,13 @@
  * @date 23/06/2026
  * @requirement RF2: Gestión Integral del Perfil del Profesional y Portafolio
  */
+/**
+ * @modified 26/06/2026
+ * @author Luis Manuel
+ * @requirement RF1: API de Registro, Autenticación y Control de Roles
+ * @changes Se sustituyó MockAuthGuard por JwtAuthGuard en todos los endpoints protegidos.
+ *          Ahora la autenticación se valida mediante el token JWT almacenado en la cookie HttpOnly.
+ */
 
 import {
   Controller,
@@ -21,7 +28,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MockAuthGuard } from '../guards/mock-auth.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../guards/roles.decorator';
 import { UpdatePerfilDto } from '../../application/dtos/UpdatePerfil.dto';
@@ -45,7 +52,7 @@ export class PerfilController {
   ) { }
 
   @Get('mi')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async getMiPerfil(@Req() req: any) {
     return await this.getPerfilUseCase.executeByUsuarioId(req.user.id);
@@ -57,14 +64,14 @@ export class PerfilController {
   }
 
   @Put()
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async updatePerfil(@Req() req: any, @Body() dto: UpdatePerfilDto) {
     return await this.updatePerfilUseCase.execute(req.user.id, dto);
   }
 
   @Post('documentos')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocumento(
@@ -85,7 +92,7 @@ export class PerfilController {
   }
 
   @Delete('documentos/:documentoId')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async deleteDocumento(@Req() req: any, @Param('documentoId') documentoId: string) {
     await this.deleteDocumentoUseCase.execute(req.user.id, documentoId);
@@ -93,14 +100,14 @@ export class PerfilController {
   }
 
   @Patch(':id/verificacion')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUDITOR')
   async verifyPerfil(@Param('id') id: string, @Body() dto: VerifyPerfilDto) {
     return await this.verifyPerfilUseCase.execute(id, dto.estado);
   }
 
   @Delete('cuenta')
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async cancelAccount(@Req() req: any) {
     const usuarioId = req.user.id;
     await this.cancelAccountUseCase.execute(usuarioId);
