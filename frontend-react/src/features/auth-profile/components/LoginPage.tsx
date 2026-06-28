@@ -221,6 +221,10 @@ export function LoginPage({ onGoRegister }: Props) {
               }
               {loading ? 'Verificando...' : 'Ingresar'}
             </button>
+
+            <p className={styles.privacyNoticeText}>
+              🔒 Al iniciar sesión, aceptas nuestro <a href="/aviso-privacidad" target="_blank" rel="noreferrer">Aviso de Privacidad</a>
+            </p>
           </form>
 
           <div className={styles.divider}>

@@ -10,6 +10,10 @@
  * @requirement RF1: API de Registro, Autenticación y Control de Roles
  * @changes Se sustituyó MockAuthGuard por JwtAuthGuard en todos los endpoints protegidos.
  *          Ahora la autenticación se valida mediante el token JWT almacenado en la cookie HttpOnly.
+ * @modified 28/06/2026
+ * @author Luis Manuel
+ * @requirement RF3: Aviso de Privacidad y Consentimiento Explícito
+ * @changes Se agregó la validación obligatoria de `consentimientoIA` en el endpoint POST /documentos.
  */
 
 import {
@@ -97,9 +101,17 @@ export class PerfilController {
     @Req() req: any,
     @UploadedFile() file: any,
     @Body('tipo') tipo: string,
+    @Body('consentimientoIA') consentimientoIA?: string,
   ) {
     if (!file) {
       throw new BadRequestException('El archivo es requerido');
+    }
+    
+    // RF3: Validación obligatoria de consentimiento para procesamiento de datos
+    if (consentimientoIA !== 'true') {
+      throw new BadRequestException(
+        'Debe otorgar su consentimiento explícito para el tratamiento del documento mediante IA.',
+      );
     }
     return await this.addDocumentoUseCase.execute(
       req.user.id,

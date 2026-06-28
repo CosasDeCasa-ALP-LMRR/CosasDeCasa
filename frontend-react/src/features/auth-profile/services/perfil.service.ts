@@ -42,10 +42,12 @@ export async function updatePerfil(payload: UpdatePerfilPayload): Promise<Perfil
 export async function uploadDocumento(
   file: File,
   tipo: string,
+  consentimientoIA: boolean = false,
 ): Promise<{ id: string; urlArchivo: string; tipo: string }> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('tipo', tipo);
+  formData.append('consentimientoIA', String(consentimientoIA));
 
   const { data } = await api.post<{ id: string; urlArchivo: string; tipo: string }>(
     '/identity/perfiles/documentos',
