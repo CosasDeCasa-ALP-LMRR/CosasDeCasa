@@ -32,6 +32,7 @@ function getFileIcon(urlArchivo: string) {
 export function PortafolioManager({ documentos, onUpdate }: Props) {
   const [selectedTipo, setSelectedTipo] = useState(TIPOS_DOCUMENTO[0].value);
   const [uploading, setUploading] = useState(false);
+  const [consentimientoIA, setConsentimientoIA] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +49,7 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
     setUploading(true);
     setError(null);
     try {
-      const result = await uploadDocumento(file, selectedTipo);
+      const result = await uploadDocumento(file, selectedTipo, consentimientoIA);
       const newDoc: Documento = {
         id: result.id,
         perfilId: '',
@@ -103,6 +104,21 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
 
       {/* Upload Area */}
       <div className={styles.uploadSection}>
+        <div className={styles.consentSection}>
+          <label className={styles.consentLabel}>
+            <input
+              type="checkbox"
+              checked={consentimientoIA}
+              onChange={(e) => setConsentimientoIA(e.target.checked)}
+              disabled={uploading}
+              className={styles.consentCheckbox}
+            />
+            <span className={styles.consentText}>
+              Autorizo el tratamiento de este documento mediante inteligencia artificial para la validación de mi identidad.
+            </span>
+          </label>
+        </div>
+
         <div className={styles.uploadControls}>
           <select
             className={styles.tipoSelect}
@@ -120,7 +136,8 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
             type="button"
             className={styles.uploadBtn}
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || !consentimientoIA}
+            title={!consentimientoIA ? 'Debe aceptar el consentimiento de IA' : ''}
           >
             {uploading ? (
               <Loader2 size={16} className={styles.spinner} />
@@ -137,6 +154,7 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
             style={{ display: 'none' }}
           />
         </div>
+
 
         {error && (
           <p className={styles.errorMsg}>

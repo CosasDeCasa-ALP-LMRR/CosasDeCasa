@@ -14,8 +14,8 @@ import { AuditorDashboardPage } from './features/auditor/components/AuditorDashb
 import { ClienteHomePage } from './features/cliente/components/ClienteHomePage';
 import { ProfileAvatar } from './features/auth-profile/components/ProfileAvatar';
 import { PerfilProfesionalPublicoPage } from './features/auth-profile/components/PerfilProfesionalPublicoPage';
+import { AvisoPrivacidadPage } from './features/auth-profile/components/AvisoPrivacidadPage';
 import './App.css';
-
 
 // ─── Auth screen (Landing) ───────────────────────────────────────────────
 type AuthScreen = 'login' | 'register';
@@ -82,6 +82,9 @@ function AppShell() {
            <PerfilProfesionalPublicoPage />
         ) : (
           <>
+            {path === '/aviso-privacidad' && (
+              <AvisoPrivacidadPage onBack={() => { window.history.pushState({}, '', '/'); setPath('/'); }} />
+            )}
             {role === 'PROFESIONAL' && path === '/perfil' && <PerfilProfesionalPage />}
             {role === 'PROFESIONAL' && path === '/' && <PerfilProfesionalPage />}
             {role === 'AUDITOR' && <AuditorDashboardPage />}
@@ -97,6 +100,13 @@ function AppShell() {
 function AppRouter() {
   const { isAuthenticated, checking } = useAuth();
   const [authMode, setAuthMode] = useState<AuthScreen | null>(null);
+  const [path, setPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handleNav = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', handleNav);
+    return () => window.removeEventListener('popstate', handleNav);
+  }, []);
 
   if (checking) {
     return (
@@ -104,6 +114,18 @@ function AppRouter() {
         <Loader2 size={36} className="app-loading-spinner" />
         <p>Verificando sesión...</p>
       </div>
+    );
+  }
+
+  // Rutas que pueden verse sin estar logueado, como el aviso de privacidad
+  if (path === '/aviso-privacidad') {
+    return (
+      <AvisoPrivacidadPage
+        onBack={() => {
+          window.history.pushState({}, '', '/');
+          setPath('/');
+        }}
+      />
     );
   }
 

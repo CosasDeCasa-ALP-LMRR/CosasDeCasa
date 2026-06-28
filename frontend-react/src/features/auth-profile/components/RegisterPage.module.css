@@ -521,6 +521,41 @@
   }
 }
 
+/* ─── Aviso Privacidad ────────────────────────────────────────────── */
+.avisoRow {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.avisoLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.avisoCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.avisoText {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.avisoText a {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.avisoText a:hover {
+  color: var(--accent-hover);
+}
+
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .brandPanel {

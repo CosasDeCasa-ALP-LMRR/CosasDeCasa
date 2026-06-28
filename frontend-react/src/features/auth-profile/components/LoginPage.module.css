@@ -391,6 +391,23 @@
   color: var(--text-secondary);
 }
 
+.privacyNoticeText {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 12px;
+}
+
+.privacyNoticeText a {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.privacyNoticeText a:hover {
+  color: var(--accent-hover);
+}
+
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .brandPanel {
