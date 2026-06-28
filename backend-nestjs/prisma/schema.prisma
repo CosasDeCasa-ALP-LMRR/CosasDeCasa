@@ -56,6 +56,7 @@ model Usuario {
   
   // Borrado lógico para Derechos ARCO
   activo           Boolean      @default(true) 
+  fotoPerfil       String?      // URL de la foto de perfil (para todos los usuarios)
   fechaCreacion    DateTime     @default(now())
   fechaActualizacion DateTime   @updatedAt
 
