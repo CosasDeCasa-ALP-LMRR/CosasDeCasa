@@ -8,6 +8,7 @@
 export interface JwtPayload {
   sub: string;
   role: string;
+  tokenType?: 'access' | 'refresh';
   iat?: number;
   exp?: number;
 }
@@ -15,4 +16,6 @@ export interface JwtPayload {
 export abstract class IJwtAdapter {
   abstract sign(payload: Record<string, unknown>): string;
   abstract verify(token: string): JwtPayload;
+  abstract signRefresh(payload: Record<string, unknown>): string;
+  abstract verifyRefresh(token: string): JwtPayload;
 }
