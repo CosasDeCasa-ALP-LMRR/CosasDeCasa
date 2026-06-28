@@ -14,6 +14,8 @@
  *          con sus implementaciones concretas (Prisma, Bcrypt, JwtAdapter).
  *          Se agregaron los casos de uso RegisterUsuarioUseCase y LoginUsuarioUseCase.
  *          Se añadió AuthController con los endpoints de autenticación.
+ * @modified 28/06/2026 — Se registró IRefreshTokenRepository, PrismaRefreshTokenRepository
+ *          y RefreshTokenUseCase para el flujo completo de refresh token.
  */
 
 import { Module } from '@nestjs/common';
@@ -47,6 +49,9 @@ import { JwtAdapter } from './infrastructure/adapters/JwtAdapter';
 import { RegisterUsuarioUseCase } from './application/use-cases/RegisterUsuario.use-case';
 import { LoginUsuarioUseCase } from './application/use-cases/LoginUsuario.use-case';
 import { UpdateFotoPerfilUseCase } from './application/use-cases/UpdateFotoPerfil.use-case';
+import { RefreshTokenUseCase } from './application/use-cases/RefreshToken.use-case';
+import { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepository';
+import { PrismaRefreshTokenRepository } from './infrastructure/persistence/PrismaRefreshTokenRepository';
 // --- Controlador de autenticación (RF1/RNF1 - Luis Manuel) ---
 import { AuthController } from './presentation/controllers/AuthController';
 
@@ -79,9 +84,11 @@ import { AuthController } from './presentation/controllers/AuthController';
     { provide: IUsuarioRepository, useClass: PrismaUsuarioRepository },
     { provide: IHashAdapter, useClass: BcryptHashAdapter },
     { provide: IJwtAdapter, useClass: JwtAdapter },
+    { provide: IRefreshTokenRepository, useClass: PrismaRefreshTokenRepository },
     RegisterUsuarioUseCase,
     LoginUsuarioUseCase,
     UpdateFotoPerfilUseCase,
+    RefreshTokenUseCase,
   ],
   exports: [
     // Perfil (RF2 - Cesar Gonzalez)
@@ -92,6 +99,7 @@ import { AuthController } from './presentation/controllers/AuthController';
     CancelAccountUseCase,
     // Autenticación (RF1/RNF1 - Luis Manuel)
     IJwtAdapter,
+    IRefreshTokenRepository,
   ],
 })
 export class IdentityModule {}

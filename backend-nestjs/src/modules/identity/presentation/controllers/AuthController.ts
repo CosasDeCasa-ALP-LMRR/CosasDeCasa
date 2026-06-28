@@ -5,6 +5,16 @@
  * @requirement RF1: API de Registro, Autenticación y Control de Roles
  * @requirement RNF1: Emisión de JWT y Configuración de Cookies Seguras
  */
+/**
+ * @modified 28/06/2026
+ * @author Luis Manuel
+ * @requirement RNF1: Emisión de JWT y Configuración de Cookies Seguras
+ * @changes Se actualizó el login para emitir también la cookie HttpOnly del refresh token.
+ *          Se agregó el endpoint POST /auth/refresh para renovar el access token
+ *          sin requerir credenciales, usando el refresh token desde su cookie.
+ *          Se actualizó el logout para revocar el refresh token activo en BD
+ *          y borrar ambas cookies.
+ */
 
 import {
   Body,
@@ -16,12 +26,17 @@ import {
   Get,
   UseGuards,
   Req,
+  Inject,
+  UnauthorizedException,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { RegisterDto } from '../../application/dtos/Register.dto';
 import { LoginDto } from '../../application/dtos/Login.dto';
 import { RegisterUsuarioUseCase } from '../../application/use-cases/RegisterUsuario.use-case';
 import { LoginUsuarioUseCase } from '../../application/use-cases/LoginUsuario.use-case';
+import { RefreshTokenUseCase } from '../../application/use-cases/RefreshToken.use-case';
+import { IRefreshTokenRepository } from '../../domain/repositories/IRefreshTokenRepository';
+import { createHash } from 'crypto';
 import { UpdateFotoPerfilUseCase } from '../../application/use-cases/UpdateFotoPerfil.use-case';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { PrismaService } from '../../../../database/prisma.service';
@@ -39,6 +54,9 @@ export class AuthController {
     private readonly loginUsuarioUseCase: LoginUsuarioUseCase,
     private readonly updateFotoPerfilUseCase: UpdateFotoPerfilUseCase,
     private readonly prisma: PrismaService,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    @Inject(IRefreshTokenRepository)
+    private readonly refreshTokenRepository: IRefreshTokenRepository,
   ) {}
 
   /**
@@ -117,31 +135,98 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token = await this.loginUsuarioUseCase.execute(dto);
+    const { accessToken, refreshToken } = await this.loginUsuarioUseCase.execute(dto);
 
-    // RNF1: Inyectar el JWT en una cookie con atributos de seguridad
-    res.cookie('access_token', token, {
-      httpOnly: true, // Inaccesible desde JS del cliente
-      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-      sameSite: 'strict', // Protección CSRF
-      maxAge: 7 * 24 * 60 * 60 * 1000, // Expiración: 7 días en ms
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+    };
+
+    // RNF1: Access token — corta duración (según JWT_EXPIRES_IN)
+    res.cookie('access_token', accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000, // 15 minutos
     });
 
-    return { message: 'Inicio de sesión exitoso' };
+    // RNF1: Refresh token — larga duración (30 días)
+    res.cookie('refresh_token', refreshToken, {
+      ...cookieOptions,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+      path: '/auth/refresh',             // Solo se envía al endpoint de renovación
+    });
+
+    return {
+      message: 'Inicio de sesión exitoso',
+      accessToken,
+      refreshToken,
+    };
   }
 
   /**
-   * Cierra la sesión del usuario eliminando la cookie de autenticación.
-   * POST /auth/logout
+   * Renueva el access token usando el refresh token de la cookie.
+   * No requiere credenciales — solo el refresh_token cookie válido.
+   * POST /auth/refresh
    */
-  @Post('logout')
+  @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token', {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const rawRefreshToken: string | undefined = (req as any).cookies?.['refresh_token'];
+    if (!rawRefreshToken) {
+      throw new UnauthorizedException(
+        'Refresh token no encontrado. Por favor, inicia sesión.',
+      );
+    }
+
+    const { accessToken } = await this.refreshTokenUseCase.execute(rawRefreshToken);
+
+    // Emitir el nuevo access token en su cookie
+    res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutos
     });
+
+    return {
+      message: 'Token renovado exitosamente',
+      accessToken,
+    };
+  }
+
+  /**
+   * Cierra la sesión del usuario eliminando ambas cookies y revocando el refresh token.
+   * POST /auth/logout
+   */
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // Revocar el refresh token activo en BD si existe
+    const rawRefreshToken: string | undefined = (req as any).cookies?.['refresh_token'];
+    if (rawRefreshToken) {
+      const tokenHash = createHash('sha256').update(rawRefreshToken).digest('hex');
+      const stored = await this.refreshTokenRepository.findByTokenHash(tokenHash);
+      if (stored) {
+        await this.refreshTokenRepository.revokeByUsuarioId(stored.usuarioId);
+      }
+    }
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+    };
+
+    res.clearCookie('access_token', cookieOptions);
+    res.clearCookie('refresh_token', { ...cookieOptions, path: '/auth/refresh' });
+
     return { message: 'Sesión cerrada exitosamente' };
   }
 }

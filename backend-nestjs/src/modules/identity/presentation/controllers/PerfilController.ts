@@ -72,13 +72,13 @@ export class PerfilController {
 
   @Get()
   async getProfesionales() {
-    // Para simplificar, este endpoint es público (o podría ser exclusivo de Clientes)
-    // Retorna todos los perfiles APROBADOS.
+    // Endpoint público — cualquier usuario puede ver la lista de profesionales aprobados.
     return await this.getProfesionalesUseCase.execute();
   }
 
   @Get(':id')
   async getPerfilPublico(@Param('id') id: string) {
+    // Endpoint público — cualquier usuario puede ver el detalle de un perfil.
     return await this.getPerfilUseCase.executeById(id);
   }
 
