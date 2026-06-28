@@ -10,7 +10,7 @@ import { PrismaService } from '../../../../database/prisma.service';
 
 @Injectable()
 export class GetPerfilUseCase {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async executeById(id: string) {
     const perfil = await this.prisma.perfil.findUnique({
@@ -21,7 +21,7 @@ export class GetPerfilUseCase {
             nombre: true,
             correo: true,
             fotoPerfil: true,
-          }
+          },
         },
         documentos: true,
       },
@@ -41,7 +41,7 @@ export class GetPerfilUseCase {
             nombre: true,
             correo: true,
             fotoPerfil: true,
-          }
+          },
         },
         documentos: true,
       },
@@ -63,7 +63,7 @@ export class GetPerfilUseCase {
               nombre: true,
               correo: true,
               fotoPerfil: true,
-            }
+            },
           },
           documentos: true,
         },

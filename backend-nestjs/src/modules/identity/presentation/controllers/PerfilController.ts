@@ -54,7 +54,7 @@ export class PerfilController {
     private readonly cancelAccountUseCase: CancelAccountUseCase,
     private readonly getPerfilesPendientesUseCase: GetPerfilesPendientesUseCase,
     private readonly getProfesionalesUseCase: GetProfesionalesUseCase,
-  ) { }
+  ) {}
 
   @Get('mi')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -113,7 +113,10 @@ export class PerfilController {
   @Delete('documentos/:documentoId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
-  async deleteDocumento(@Req() req: any, @Param('documentoId') documentoId: string) {
+  async deleteDocumento(
+    @Req() req: any,
+    @Param('documentoId') documentoId: string,
+  ) {
     await this.deleteDocumentoUseCase.execute(req.user.id, documentoId);
     return { message: 'Documento eliminado exitosamente' };
   }
@@ -132,8 +135,9 @@ export class PerfilController {
     await this.cancelAccountUseCase.execute(usuarioId);
 
     return {
-      message: 'Cuenta eliminada y datos anonimizados correctamente en cumplimiento de Derechos ARCO.',
-      status: 'success'
+      message:
+        'Cuenta eliminada y datos anonimizados correctamente en cumplimiento de Derechos ARCO.',
+      status: 'success',
     };
   }
 }

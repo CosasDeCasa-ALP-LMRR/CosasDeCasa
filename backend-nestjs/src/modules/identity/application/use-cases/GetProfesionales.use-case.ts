@@ -7,7 +7,7 @@ import { PrismaService } from '../../../../database/prisma.service';
 
 @Injectable()
 export class GetProfesionalesUseCase {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async execute() {
     return await this.prisma.perfil.findMany({
@@ -20,13 +20,13 @@ export class GetProfesionalesUseCase {
             nombre: true,
             correo: true,
             fotoPerfil: true,
-          }
+          },
         },
         documentos: true,
       },
       orderBy: {
-        promedioCalificacion: 'desc'
-      }
+        promedioCalificacion: 'desc',
+      },
     });
   }
 }

@@ -4,4 +4,4 @@ import { PerfilEventosListener } from './application/listeners/perfil-eventos.li
 @Module({
   providers: [PerfilEventosListener],
 })
-export class SearchReviewModule { }
+export class SearchReviewModule {}

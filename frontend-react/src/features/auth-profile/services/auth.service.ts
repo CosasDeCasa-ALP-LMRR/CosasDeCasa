@@ -80,6 +80,7 @@ export async function uploadFotoPerfil(file: File): Promise<{ message: string, f
 }
 
 export interface UserMe {
+  fotoPerfil: null;
   id: string;
   nombre: string;
   rol: 'PROFESIONAL' | 'CLIENTE' | 'AUDITOR';

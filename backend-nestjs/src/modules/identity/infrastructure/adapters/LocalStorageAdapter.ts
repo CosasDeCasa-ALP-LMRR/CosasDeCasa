@@ -21,7 +21,11 @@ export class LocalStorageAdapter implements IStorageAdapter {
     }
   }
 
-  async saveFile(fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> {
+  async saveFile(
+    fileBuffer: Buffer,
+    fileName: string,
+    mimeType: string,
+  ): Promise<string> {
     const fileExtension = path.extname(fileName);
     const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExtension}`;
     const filePath = path.join(this.uploadDir, uniqueFileName);

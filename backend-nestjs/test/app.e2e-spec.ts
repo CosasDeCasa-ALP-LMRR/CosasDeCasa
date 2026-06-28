@@ -27,5 +27,5 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  // Prueba de TEST 
+  // Prueba de TEST
 });

@@ -26,7 +26,11 @@ import { UpdateFotoPerfilUseCase } from '../../application/use-cases/UpdateFotoP
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { PrismaService } from '../../../../database/prisma.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import {
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+} from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +39,7 @@ export class AuthController {
     private readonly loginUsuarioUseCase: LoginUsuarioUseCase,
     private readonly updateFotoPerfilUseCase: UpdateFotoPerfilUseCase,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   /**
    * Obtiene la información del usuario autenticado basado en su JWT.
@@ -48,13 +52,19 @@ export class AuthController {
     // JwtAuthGuard pone en req.user: { id, role } (payload del JWT)
     const usuario = await this.prisma.usuario.findUnique({
       where: { id: req.user.id },
-      select: { id: true, nombre: true, correo: true, rol: true, fotoPerfil: true },
+      select: {
+        id: true,
+        nombre: true,
+        correo: true,
+        rol: true,
+        fotoPerfil: true,
+      },
     });
     if (!usuario) throw new Error('Usuario no encontrado');
     return {
       id: usuario.id,
       nombre: usuario.nombre,
-      rol: usuario.rol,   // enum: PROFESIONAL | CLIENTE | AUDITOR
+      rol: usuario.rol, // enum: PROFESIONAL | CLIENTE | AUDITOR
       correo: usuario.correo,
       fotoPerfil: usuario.fotoPerfil,
     };
@@ -67,24 +77,21 @@ export class AuthController {
   @Post('foto-perfil')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFotoPerfil(
-    @Req() req: any,
-    @UploadedFile() file: any,
-  ) {
+  async uploadFotoPerfil(@Req() req: any, @UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException('El archivo de imagen es requerido');
     }
-    
+
     const url = await this.updateFotoPerfilUseCase.execute(
       req.user.id,
       file.buffer,
       file.originalname,
-      file.mimetype
+      file.mimetype,
     );
-    
+
     return {
       message: 'Foto de perfil actualizada exitosamente',
-      fotoPerfil: url
+      fotoPerfil: url,
     };
   }
 
@@ -114,10 +121,10 @@ export class AuthController {
 
     // RNF1: Inyectar el JWT en una cookie con atributos de seguridad
     res.cookie('access_token', token, {
-      httpOnly: true,                                          // Inaccesible desde JS del cliente
-      secure: process.env.NODE_ENV === 'production',          // Solo HTTPS en producción
-      sameSite: 'strict',                                     // Protección CSRF
-      maxAge: 7 * 24 * 60 * 60 * 1000,                       // Expiración: 7 días en ms
+      httpOnly: true, // Inaccesible desde JS del cliente
+      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+      sameSite: 'strict', // Protección CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Expiración: 7 días en ms
     });
 
     return { message: 'Inicio de sesión exitoso' };

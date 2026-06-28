@@ -9,6 +9,6 @@ export class PerfilVerificacionActualizadaEvent {
   constructor(
     public readonly perfilId: string,
     public readonly usuarioId: string,
-    public readonly nuevoEstado: string
+    public readonly nuevoEstado: string,
   ) {}
 }

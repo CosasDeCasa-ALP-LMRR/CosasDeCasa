@@ -94,4 +94,4 @@ import { AuthController } from './presentation/controllers/AuthController';
     IJwtAdapter,
   ],
 })
-export class IdentityModule { }
+export class IdentityModule {}

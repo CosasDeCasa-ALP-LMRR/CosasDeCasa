@@ -18,7 +18,12 @@ export class UpdateFotoPerfilUseCase {
     private readonly prisma: PrismaService, // Usaremos prisma para actualizar rápido
   ) {}
 
-  async execute(usuarioId: string, fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> {
+  async execute(
+    usuarioId: string,
+    fileBuffer: Buffer,
+    fileName: string,
+    mimeType: string,
+  ): Promise<string> {
     const usuario = await this.usuarioRepository.findById(usuarioId);
     if (!usuario) {
       throw new NotFoundException('Usuario no encontrado');
@@ -36,12 +41,16 @@ export class UpdateFotoPerfilUseCase {
     const path = `usuarios/${usuarioId}/foto_${timestamp}_${cleanFileName}`;
 
     // 3. Subir archivo al bucket/almacenamiento
-    const urlArchivo = await this.storageAdapter.saveFile(fileBuffer, path, mimeType);
+    const urlArchivo = await this.storageAdapter.saveFile(
+      fileBuffer,
+      path,
+      mimeType,
+    );
 
     // 4. Actualizar el usuario con la nueva URL en Prisma
     await this.prisma.usuario.update({
       where: { id: usuarioId },
-      data: { fotoPerfil: urlArchivo }
+      data: { fotoPerfil: urlArchivo },
     });
 
     return urlArchivo;

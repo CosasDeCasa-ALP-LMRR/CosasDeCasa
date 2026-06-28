@@ -43,15 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkSession = useCallback(async () => {
     try {
       const user = await getMe();
-      setState({ isAuthenticated: true, role: user.rol, nombre: user.nombre ?? null, fotoPerfil: user.fotoPerfil ?? null, checking: false });
+      setState({ isAuthenticated: true, role: user.rol, nombre: user.nombre ?? null, fotoPerfil: (user as any).fotoPerfil ?? null, checking: false });
     } catch {
       setState({ isAuthenticated: false, role: null, nombre: null, fotoPerfil: null, checking: false });
     }
   }, []);
 
   useEffect(() => {
-    checkSession();
+    void (async () => {
+      await checkSession();
+    })();
   }, [checkSession]);
+
 
   const loginCtx = useCallback(async () => {
     // Después de que el servicio hace login exitoso, refrescamos la sesión
@@ -76,8 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
   return ctx;
 }
+

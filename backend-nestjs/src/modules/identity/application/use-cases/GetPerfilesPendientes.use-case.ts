@@ -7,7 +7,7 @@ import { PrismaService } from '../../../../database/prisma.service';
 
 @Injectable()
 export class GetPerfilesPendientesUseCase {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async execute() {
     return await this.prisma.perfil.findMany({
@@ -19,15 +19,15 @@ export class GetPerfilesPendientesUseCase {
           select: {
             nombre: true,
             correo: true,
-          }
+          },
         },
         documentos: true,
       },
       orderBy: {
         usuario: {
-          fechaCreacion: 'asc'
-        }
-      }
+          fechaCreacion: 'asc',
+        },
+      },
     });
   }
 }
