@@ -71,6 +71,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [aceptoAviso, setAceptoAviso] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -376,11 +377,26 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
               {fieldErrors.confirm && <p className={styles.fieldError}>{fieldErrors.confirm}</p>}
             </div>
 
+            <div className={styles.avisoRow}>
+              <label className={styles.avisoLabel}>
+                <input
+                  type="checkbox"
+                  checked={aceptoAviso}
+                  onChange={(e) => setAceptoAviso(e.target.checked)}
+                  className={styles.avisoCheckbox}
+                />
+                <span className={styles.avisoText}>
+                  He leído y acepto el <a href="/aviso-privacidad" target="_blank" rel="noreferrer">Aviso de Privacidad</a>
+                </span>
+              </label>
+            </div>
+
             <button
               id="btn-register"
               type="submit"
               className={styles.submitBtn}
-              disabled={loading}
+              disabled={loading || !aceptoAviso}
+              title={!aceptoAviso ? 'Debes aceptar el aviso de privacidad' : ''}
             >
               {loading
                 ? <Loader2 size={17} className={styles.spinner} />
