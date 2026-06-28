@@ -67,7 +67,9 @@ model Usuario {
   auditorias       BitacoraAuditoria[]
   resenasDadas     Resena[]     @relation("ClienteResenas")
   resenasRecibidas Resena[]     @relation("ProfesionalResenas")
+  refreshTokens    RefreshToken[]        // RF1/RNF1 - Luis Manuel
 }
+
 
 model Perfil {
   id                   String             @id @default(uuid())
@@ -137,3 +139,16 @@ model BitacoraAuditoria {
   entidadAfectada  String   // Ej. "PERFIL_ID_123"
   fechaAccion      DateTime @default(now())
 }
+
+// RF1/RNF1 - Refresh Token (Luis Manuel - 28/06/2026)
+// Se almacena el hash del token (no el token en texto plano) para mayor seguridad.
+model RefreshToken {
+  id          String   @id @default(uuid())
+  usuarioId   String
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique  // SHA-256 del refresh token
+  expiresAt   DateTime
+  revocado    Boolean  @default(false)
+  creadoEn    DateTime @default(now())
+}
+
