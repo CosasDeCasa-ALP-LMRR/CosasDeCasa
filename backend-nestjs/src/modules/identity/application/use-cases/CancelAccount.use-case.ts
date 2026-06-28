@@ -10,12 +10,12 @@ import { IPerfilRepository } from '../../domain/repositories/IPerfilRepository';
 
 @Injectable()
 export class CancelAccountUseCase {
-    constructor(
-        @Inject(IPerfilRepository)
-        private readonly perfilRepository: IPerfilRepository,
-    ) { }
+  constructor(
+    @Inject(IPerfilRepository)
+    private readonly perfilRepository: IPerfilRepository,
+  ) {}
 
-    async execute(usuarioId: string): Promise<void> {
-        await this.perfilRepository.anonymizeAccount(usuarioId);
-    }
+  async execute(usuarioId: string): Promise<void> {
+    await this.perfilRepository.anonymizeAccount(usuarioId);
+  }
 }

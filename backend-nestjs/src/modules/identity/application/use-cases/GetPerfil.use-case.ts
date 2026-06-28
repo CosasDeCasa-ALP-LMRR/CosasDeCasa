@@ -6,44 +6,68 @@
  */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IPerfilRepository } from '../../domain/repositories/IPerfilRepository';
-import { Perfil } from '../../domain/entities/Perfil';
-import { randomUUID } from 'crypto';
+import { PrismaService } from '../../../../database/prisma.service';
 
 @Injectable()
 export class GetPerfilUseCase {
-  constructor(
-    private readonly perfilRepository: IPerfilRepository
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async executeById(id: string): Promise<Perfil> {
-    const perfil = await this.perfilRepository.findById(id);
+  async executeById(id: string) {
+    const perfil = await this.prisma.perfil.findUnique({
+      where: { id },
+      include: {
+        usuario: {
+          select: {
+            nombre: true,
+            correo: true,
+            fotoPerfil: true,
+          },
+        },
+        documentos: true,
+      },
+    });
     if (!perfil) {
       throw new NotFoundException(`Perfil con ID ${id} no encontrado`);
     }
     return perfil;
   }
 
-  async executeByUsuarioId(usuarioId: string): Promise<Perfil> {
-    let perfil = await this.perfilRepository.findByUsuarioId(usuarioId);
+  async executeByUsuarioId(usuarioId: string) {
+    let perfil = await this.prisma.perfil.findUnique({
+      where: { usuarioId },
+      include: {
+        usuario: {
+          select: {
+            nombre: true,
+            correo: true,
+            fotoPerfil: true,
+          },
+        },
+        documentos: true,
+      },
+    });
+
     if (!perfil) {
       // Auto-create a default empty profile for this user
-      perfil = new Perfil(
-        randomUUID(),
-        usuarioId,
-        null, // telefono
-        null, // biografia
-        null, // categoriaPrincipal
-        [], // etiquetas
-        null, // codigoPostal
-        null, // municipio
-        null, // estadoRep
-        false, // aceptaUrgencias
-        'PENDIENTE', // estadoVerificacion
-        0.0, // promedioCalificacion
-        null // diasYHorarios
-      );
-      perfil = await this.perfilRepository.save(perfil);
+      perfil = await this.prisma.perfil.create({
+        data: {
+          usuarioId,
+          etiquetas: [],
+          aceptaUrgencias: false,
+          estadoVerificacion: 'PENDIENTE',
+          promedioCalificacion: 0.0,
+        },
+        include: {
+          usuario: {
+            select: {
+              nombre: true,
+              correo: true,
+              fotoPerfil: true,
+            },
+          },
+          documentos: true,
+        },
+      });
     }
     return perfil;
   }

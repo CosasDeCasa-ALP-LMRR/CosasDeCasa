@@ -13,7 +13,11 @@ export abstract class IStorageAdapter {
    * @param mimeType The file's mime type (e.g. image/jpeg).
    * @returns A promise resolving to the final accessible URL.
    */
-  abstract saveFile(fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string>;
+  abstract saveFile(
+    fileBuffer: Buffer,
+    fileName: string,
+    mimeType: string,
+  ): Promise<string>;
 
   /**
    * Deletes a file from the storage system given its access URL.

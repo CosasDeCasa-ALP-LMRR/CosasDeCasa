@@ -40,6 +40,9 @@ import { DeleteDocumentoUseCase } from '../../application/use-cases/DeleteDocume
 import { VerifyPerfilUseCase } from '../../application/use-cases/VerifyPerfil.use-case';
 import { CancelAccountUseCase } from '../../application/use-cases/CancelAccount.use-case';
 
+import { GetPerfilesPendientesUseCase } from '../../application/use-cases/GetPerfilesPendientes.use-case';
+import { GetProfesionalesUseCase } from '../../application/use-cases/GetProfesionales.use-case';
+
 @Controller('identity/perfiles')
 export class PerfilController {
   constructor(
@@ -49,13 +52,29 @@ export class PerfilController {
     private readonly deleteDocumentoUseCase: DeleteDocumentoUseCase,
     private readonly verifyPerfilUseCase: VerifyPerfilUseCase,
     private readonly cancelAccountUseCase: CancelAccountUseCase,
-  ) { }
+    private readonly getPerfilesPendientesUseCase: GetPerfilesPendientesUseCase,
+    private readonly getProfesionalesUseCase: GetProfesionalesUseCase,
+  ) {}
 
   @Get('mi')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async getMiPerfil(@Req() req: any) {
     return await this.getPerfilUseCase.executeByUsuarioId(req.user.id);
+  }
+
+  @Get('pendientes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('AUDITOR')
+  async getPerfilesPendientes() {
+    return await this.getPerfilesPendientesUseCase.execute();
+  }
+
+  @Get()
+  async getProfesionales() {
+    // Para simplificar, este endpoint es público (o podría ser exclusivo de Clientes)
+    // Retorna todos los perfiles APROBADOS.
+    return await this.getProfesionalesUseCase.execute();
   }
 
   @Get(':id')
@@ -94,7 +113,10 @@ export class PerfilController {
   @Delete('documentos/:documentoId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
-  async deleteDocumento(@Req() req: any, @Param('documentoId') documentoId: string) {
+  async deleteDocumento(
+    @Req() req: any,
+    @Param('documentoId') documentoId: string,
+  ) {
     await this.deleteDocumentoUseCase.execute(req.user.id, documentoId);
     return { message: 'Documento eliminado exitosamente' };
   }
@@ -113,8 +135,9 @@ export class PerfilController {
     await this.cancelAccountUseCase.execute(usuarioId);
 
     return {
-      message: 'Cuenta eliminada y datos anonimizados correctamente en cumplimiento de Derechos ARCO.',
-      status: 'success'
+      message:
+        'Cuenta eliminada y datos anonimizados correctamente en cumplimiento de Derechos ARCO.',
+      status: 'success',
     };
   }
 }

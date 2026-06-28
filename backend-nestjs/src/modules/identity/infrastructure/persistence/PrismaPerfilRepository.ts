@@ -9,14 +9,17 @@ import { Injectable } from '@nestjs/common';
 import { IPerfilRepository } from '../../domain/repositories/IPerfilRepository';
 import { Perfil as DomainPerfil } from '../../domain/entities/Perfil';
 import { PrismaService } from '../../../../database/prisma.service';
-import { Perfil as PrismaPerfil, Documento as PrismaDocumento } from '@prisma/client';
+import {
+  Perfil as PrismaPerfil,
+  Documento as PrismaDocumento,
+} from '@prisma/client';
 
 @Injectable()
 export class PrismaPerfilRepository implements IPerfilRepository {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
   private mapToDomain(
-    prismaPerfil: PrismaPerfil & { documentos?: PrismaDocumento[] }
+    prismaPerfil: PrismaPerfil & { documentos?: PrismaDocumento[] },
   ): DomainPerfil {
     return new DomainPerfil(
       prismaPerfil.id,
@@ -34,13 +37,13 @@ export class PrismaPerfilRepository implements IPerfilRepository {
       prismaPerfil.diasYHorarios,
       prismaPerfil.documentos
         ? prismaPerfil.documentos.map((d) => ({
-          id: d.id,
-          perfilId: d.perfilId,
-          tipo: d.tipo,
-          urlArchivo: d.urlArchivo,
-          fechaSubida: d.fechaSubida,
-        }))
-        : []
+            id: d.id,
+            perfilId: d.perfilId,
+            tipo: d.tipo,
+            urlArchivo: d.urlArchivo,
+            fechaSubida: d.fechaSubida,
+          }))
+        : [],
     );
   }
 
@@ -108,15 +111,18 @@ export class PrismaPerfilRepository implements IPerfilRepository {
     if (data.categoriaPrincipal !== undefined)
       updateData.categoriaPrincipal = data.categoriaPrincipal;
     if (data.etiquetas !== undefined) updateData.etiquetas = data.etiquetas;
-    if (data.codigoPostal !== undefined) updateData.codigoPostal = data.codigoPostal;
+    if (data.codigoPostal !== undefined)
+      updateData.codigoPostal = data.codigoPostal;
     if (data.municipio !== undefined) updateData.municipio = data.municipio;
     if (data.estadoRep !== undefined) updateData.estadoRep = data.estadoRep;
-    if (data.aceptaUrgencias !== undefined) updateData.aceptaUrgencias = data.aceptaUrgencias;
+    if (data.aceptaUrgencias !== undefined)
+      updateData.aceptaUrgencias = data.aceptaUrgencias;
     if (data.estadoVerificacion !== undefined)
       updateData.estadoVerificacion = data.estadoVerificacion as any;
     if (data.promedioCalificacion !== undefined)
       updateData.promedioCalificacion = data.promedioCalificacion;
-    if (data.diasYHorarios !== undefined) updateData.diasYHorarios = data.diasYHorarios;
+    if (data.diasYHorarios !== undefined)
+      updateData.diasYHorarios = data.diasYHorarios;
 
     const prismaPerfil = await this.prismaService.perfil.update({
       where: { id },
@@ -147,7 +153,8 @@ export class PrismaPerfilRepository implements IPerfilRepository {
       where: { usuarioId: usuarioId },
       data: {
         telefono: null,
-        biografia: 'Esta cuenta ha sido eliminada a petición del usuario (Derechos ARCO).',
+        biografia:
+          'Esta cuenta ha sido eliminada a petición del usuario (Derechos ARCO).',
         categoriaPrincipal: null,
         codigoPostal: null,
         municipio: null,

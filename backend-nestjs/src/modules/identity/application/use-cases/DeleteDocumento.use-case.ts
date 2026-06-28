@@ -5,7 +5,11 @@
  * @requirement RF2: Gestión Integral del Perfil del Profesional y Portafolio
  */
 
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { IDocumentoRepository } from '../../domain/repositories/IDocumentoRepository';
 import { IStorageAdapter } from '../../domain/adapters/IStorageAdapter';
 import { GetPerfilUseCase } from './GetPerfil.use-case';
@@ -15,18 +19,22 @@ export class DeleteDocumentoUseCase {
   constructor(
     private readonly documentoRepository: IDocumentoRepository,
     private readonly storageAdapter: IStorageAdapter,
-    private readonly getPerfilUseCase: GetPerfilUseCase
+    private readonly getPerfilUseCase: GetPerfilUseCase,
   ) {}
 
   async execute(usuarioId: string, documentoId: string): Promise<void> {
     const documento = await this.documentoRepository.findById(documentoId);
     if (!documento) {
-      throw new NotFoundException(`Documento con ID ${documentoId} no encontrado`);
+      throw new NotFoundException(
+        `Documento con ID ${documentoId} no encontrado`,
+      );
     }
 
     const perfil = await this.getPerfilUseCase.executeByUsuarioId(usuarioId);
     if (documento.perfilId !== perfil.id) {
-      throw new ForbiddenException('No tienes permiso para eliminar este documento');
+      throw new ForbiddenException(
+        'No tienes permiso para eliminar este documento',
+      );
     }
 
     await this.storageAdapter.deleteFile(documento.urlArchivo);

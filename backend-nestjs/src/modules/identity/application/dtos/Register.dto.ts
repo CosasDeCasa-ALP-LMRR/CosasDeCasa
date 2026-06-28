@@ -5,7 +5,14 @@
  * @requirement RF1: API de Registro, Autenticación y Control de Roles
  */
 
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export enum RolRegistro {
   CLIENTE = 'CLIENTE',

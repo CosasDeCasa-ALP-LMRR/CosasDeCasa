@@ -31,7 +31,10 @@ export class LoginUsuarioUseCase {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const passwordValida = await this.hashAdapter.compare(dto.password, usuario.passwordHash);
+    const passwordValida = await this.hashAdapter.compare(
+      dto.password,
+      usuario.passwordHash,
+    );
     if (!passwordValida) {
       throw new UnauthorizedException('Credenciales inválidas');
     }

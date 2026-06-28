@@ -32,6 +32,8 @@ import { AddDocumentoUseCase } from './application/use-cases/AddDocumento.use-ca
 import { DeleteDocumentoUseCase } from './application/use-cases/DeleteDocumento.use-case';
 import { VerifyPerfilUseCase } from './application/use-cases/VerifyPerfil.use-case';
 import { CancelAccountUseCase } from './application/use-cases/CancelAccount.use-case';
+import { GetPerfilesPendientesUseCase } from './application/use-cases/GetPerfilesPendientes.use-case';
+import { GetProfesionalesUseCase } from './application/use-cases/GetProfesionales.use-case';
 // --- Controladores de perfil (RF2 - Cesar Gonzalez) ---
 import { PerfilController } from './presentation/controllers/PerfilController';
 // --- Puertos y adaptadores de autenticación (RF1/RNF1 - Luis Manuel) ---
@@ -44,6 +46,7 @@ import { JwtAdapter } from './infrastructure/adapters/JwtAdapter';
 // --- Casos de uso de autenticación (RF1/RNF1 - Luis Manuel) ---
 import { RegisterUsuarioUseCase } from './application/use-cases/RegisterUsuario.use-case';
 import { LoginUsuarioUseCase } from './application/use-cases/LoginUsuario.use-case';
+import { UpdateFotoPerfilUseCase } from './application/use-cases/UpdateFotoPerfil.use-case';
 // --- Controlador de autenticación (RF1/RNF1 - Luis Manuel) ---
 import { AuthController } from './presentation/controllers/AuthController';
 
@@ -70,12 +73,15 @@ import { AuthController } from './presentation/controllers/AuthController';
     DeleteDocumentoUseCase,
     VerifyPerfilUseCase,
     CancelAccountUseCase,
+    GetPerfilesPendientesUseCase,
+    GetProfesionalesUseCase,
     // Autenticación (RF1/RNF1 - Luis Manuel)
     { provide: IUsuarioRepository, useClass: PrismaUsuarioRepository },
     { provide: IHashAdapter, useClass: BcryptHashAdapter },
     { provide: IJwtAdapter, useClass: JwtAdapter },
     RegisterUsuarioUseCase,
     LoginUsuarioUseCase,
+    UpdateFotoPerfilUseCase,
   ],
   exports: [
     // Perfil (RF2 - Cesar Gonzalez)
