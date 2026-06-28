@@ -19,6 +19,7 @@
 
 import axios from 'axios';
 import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import { formatApiError } from '../utils/error.utils';
 
 // ─── Instancia principal ──────────────────────────────────────────────────────
 export const api = axios.create({
@@ -63,6 +64,8 @@ api.interceptors.response.use(
     const alreadyRetried = originalRequest._retry;
 
     if (!isUnauthorized || isRefreshEndpoint || isLoginEndpoint || alreadyRetried) {
+      // Reemplazamos el mensaje de error de Axios por uno amigable globalmente
+      error.message = formatApiError(error);
       return Promise.reject(error);
     }
 

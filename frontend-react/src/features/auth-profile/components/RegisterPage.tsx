@@ -124,7 +124,8 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
     try {
       await register({ nombre, correo, password, rol });
       setSuccess(true);
-      setTimeout(async () => await loginCtx(), 1800);
+      // Redirigir al login después de mostrar el mensaje de éxito
+      setTimeout(() => onGoLogin(), 1800);
     } catch (err: any) {
       setError(err.message ?? 'Error al crear la cuenta');
     } finally {
