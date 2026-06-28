@@ -11,6 +11,6 @@ export class Documento {
     public readonly perfilId: string,
     public readonly tipo: string, // 'INE', 'CEDULA', 'PORTAFOLIO'
     public readonly urlArchivo: string,
-    public readonly fechaSubida: Date
+    public readonly fechaSubida: Date,
   ) {}
 }

@@ -20,6 +20,6 @@ export class Perfil {
     public estadoVerificacion: string, // 'PENDIENTE', 'APROBADO', 'RECHAZADO'
     public promedioCalificacion: number,
     public diasYHorarios: any | null, // Configuración de disponibilidad
-    public documentos?: any[]
+    public documentos?: any[],
   ) {}
 }

@@ -5,19 +5,26 @@
  * @requirement RF2: Gestión Integral del Perfil del Profesional y Portafolio
  */
 
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class MockAuthGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     const userId = request.headers['x-user-id'];
     const userRole = request.headers['x-user-role'];
 
     if (!userId || !userRole) {
       throw new UnauthorizedException(
-        'Faltan las cabeceras de autenticación de pruebas: x-user-id o x-user-role'
+        'Faltan las cabeceras de autenticación de pruebas: x-user-id o x-user-role',
       );
     }
 

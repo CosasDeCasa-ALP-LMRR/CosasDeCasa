@@ -35,6 +35,14 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
     return this.mapToDomain(prismaUsuario);
   }
 
+  async findById(id: string): Promise<Usuario | null> {
+    const prismaUsuario = await this.prismaService.usuario.findUnique({
+      where: { id },
+    });
+    if (!prismaUsuario) return null;
+    return this.mapToDomain(prismaUsuario);
+  }
+
   async save(usuario: Usuario): Promise<Usuario> {
     const prismaUsuario = await this.prismaService.usuario.create({
       data: {

@@ -24,7 +24,9 @@ export class RegisterUsuarioUseCase {
   async execute(dto: RegisterDto): Promise<Omit<Usuario, 'passwordHash'>> {
     const existente = await this.usuarioRepository.findByCorreo(dto.correo);
     if (existente) {
-      throw new ConflictException('El correo ya se encuentra registrado en el sistema');
+      throw new ConflictException(
+        'El correo ya se encuentra registrado en el sistema',
+      );
     }
 
     const passwordHash = await this.hashAdapter.hash(dto.password);

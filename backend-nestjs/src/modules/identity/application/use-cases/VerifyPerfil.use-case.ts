@@ -15,7 +15,7 @@ import { PerfilVerificacionActualizadaEvent } from '../../domain/events/perfil-v
 export class VerifyPerfilUseCase {
   constructor(
     private readonly perfilRepository: IPerfilRepository,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(perfilId: string, nuevoEstado: string): Promise<Perfil> {
@@ -34,8 +34,8 @@ export class VerifyPerfilUseCase {
       new PerfilVerificacionActualizadaEvent(
         perfilActualizado.id,
         perfilActualizado.usuarioId,
-        perfilActualizado.estadoVerificacion
-      )
+        perfilActualizado.estadoVerificacion,
+      ),
     );
 
     return perfilActualizado;

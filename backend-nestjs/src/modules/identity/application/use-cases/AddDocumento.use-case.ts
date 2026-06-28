@@ -17,7 +17,7 @@ export class AddDocumentoUseCase {
   constructor(
     private readonly documentoRepository: IDocumentoRepository,
     private readonly storageAdapter: IStorageAdapter,
-    private readonly getPerfilUseCase: GetPerfilUseCase
+    private readonly getPerfilUseCase: GetPerfilUseCase,
   ) {}
 
   async execute(
@@ -25,20 +25,30 @@ export class AddDocumentoUseCase {
     fileBuffer: Buffer,
     fileName: string,
     mimeType: string,
-    tipo: string
+    tipo: string,
   ): Promise<Documento> {
     const validTipos = ['INE', 'CEDULA', 'PORTAFOLIO'];
     if (!validTipos.includes(tipo)) {
       throw new BadRequestException(
-        `Tipo de documento inválido: ${tipo}. Debe ser uno de ${validTipos.join(', ')}`
+        `Tipo de documento inválido: ${tipo}. Debe ser uno de ${validTipos.join(', ')}`,
       );
     }
 
     const perfil = await this.getPerfilUseCase.executeByUsuarioId(usuarioId);
 
-    const urlArchivo = await this.storageAdapter.saveFile(fileBuffer, fileName, mimeType);
+    const urlArchivo = await this.storageAdapter.saveFile(
+      fileBuffer,
+      fileName,
+      mimeType,
+    );
 
-    const documento = new Documento(randomUUID(), perfil.id, tipo, urlArchivo, new Date());
+    const documento = new Documento(
+      randomUUID(),
+      perfil.id,
+      tipo,
+      urlArchivo,
+      new Date(),
+    );
 
     return await this.documentoRepository.save(documento);
   }

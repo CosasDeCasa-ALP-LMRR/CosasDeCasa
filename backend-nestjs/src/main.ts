@@ -20,7 +20,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-    })
+    }),
   );
 
   // Middleware para parsear cookies (requerido por RNF1 - JWT en cookies HttpOnly)
