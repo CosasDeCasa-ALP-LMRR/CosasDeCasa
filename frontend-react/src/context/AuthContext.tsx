@@ -3,6 +3,16 @@
  * Detecta si hay sesión activa intentando cargar /identity/perfiles/mi
  * @date 27/06/2026
  */
+/**
+ * @modified 28/06/2026
+ * @author Luis Manuel
+ * @requirement RF12: Interfaz de Autenticación y Enrutamiento por Roles
+ * @requirement RNF7: Manejo de Sesión Transparente y Envío de Credenciales
+ * @changes Se agregó listener para el evento global 'auth:session-expired'
+ *          que dispara el interceptor de Axios (src/lib/axios.ts) cuando tanto
+ *          el access_token como el refresh_token expiran. El contexto limpia
+ *          el estado de sesión automáticamente para redirigir al login.
+ */
 import {
   createContext,
   useContext,
@@ -30,6 +40,8 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const SESSION_EXPIRED_EVENT = 'auth:session-expired';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
@@ -39,22 +51,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checking: true,
   });
 
+  const clearSession = useCallback(() => {
+    setState({ isAuthenticated: false, role: null, nombre: null, fotoPerfil: null, checking: false });
+  }, []);
+
   /** Intenta verificar si hay cookie válida cargando /auth/me */
   const checkSession = useCallback(async () => {
     try {
       const user = await getMe();
-      setState({ isAuthenticated: true, role: user.rol, nombre: user.nombre ?? null, fotoPerfil: (user as any).fotoPerfil ?? null, checking: false });
+      setState({
+        isAuthenticated: true,
+        role: user.rol,
+        nombre: user.nombre ?? null,
+        fotoPerfil: user.fotoPerfil ?? null,
+        checking: false,
+      });
     } catch {
-      setState({ isAuthenticated: false, role: null, nombre: null, fotoPerfil: null, checking: false });
+      clearSession();
     }
-  }, []);
+  }, [clearSession]);
 
+  // Verificar sesión al montar la app
   useEffect(() => {
-    void (async () => {
-      await checkSession();
-    })();
+    void checkSession();
   }, [checkSession]);
 
+  // Escuchar el evento del interceptor de Axios cuando ambos tokens expiran
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      clearSession();
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    };
+  }, [clearSession]);
 
   const loginCtx = useCallback(async () => {
     // Después de que el servicio hace login exitoso, refrescamos la sesión
@@ -65,15 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiLogout();
     } catch {
-      // ignore network errors on logout
+      // ignorar errores de red en logout
     }
-    setState({ isAuthenticated: false, role: null, nombre: null, fotoPerfil: null, checking: false });
-  }, []);
+    clearSession();
+  }, [clearSession]);
 
   return (
-    <AuthContext.Provider
-      value={{ ...state, login: loginCtx, logout: logoutCtx }}
-    >
+    <AuthContext.Provider value={{ ...state, login: loginCtx, logout: logoutCtx }}>
       {children}
     </AuthContext.Provider>
   );
@@ -85,4 +114,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
   return ctx;
 }
-
