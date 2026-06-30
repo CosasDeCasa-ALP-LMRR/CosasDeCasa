@@ -1,6 +1,6 @@
 /**
  * @fileoverview Controlador para la gestión de solicitudes de servicio.
- * @author Copilot
+ * @author Cesar Glez
  * @date 30/06/2026
  */
 

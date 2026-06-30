@@ -1,6 +1,6 @@
 /**
  * @fileoverview DTO para cambiar el estado de una solicitud de servicio.
- * @author Copilot
+ * @author Cesar Glez
  * @date 30/06/2026
  */
 

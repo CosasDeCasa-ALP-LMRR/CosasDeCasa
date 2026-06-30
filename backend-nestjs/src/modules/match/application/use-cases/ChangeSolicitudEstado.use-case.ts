@@ -1,6 +1,6 @@
 /**
  * @fileoverview Caso de uso para cambiar el estado de una solicitud y validar la propiedad del recurso.
- * @author Copilot
+ * @author Cesar Glez
  * @date 30/06/2026
  */
 

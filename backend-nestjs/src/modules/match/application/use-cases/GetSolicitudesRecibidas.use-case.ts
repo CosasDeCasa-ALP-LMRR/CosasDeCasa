@@ -1,6 +1,6 @@
 /**
  * @fileoverview Caso de uso para obtener las solicitudes recibidas por un profesional.
- * @author Copilot
+ * @author Cesar Glez
  * @date 30/06/2026
  */
 
