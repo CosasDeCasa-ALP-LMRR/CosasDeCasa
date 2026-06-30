@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { register } from '../services/auth.service';
 import { useAuth } from '../../../context/AuthContext';
+import { AvisoPrivacidadPage } from './AvisoPrivacidadPage';
 import styles from './RegisterPage.module.css';
 
 interface Props {
@@ -72,6 +73,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [aceptoAviso, setAceptoAviso] = useState(false);
+  const [showAviso, setShowAviso] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -386,7 +388,10 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
                   className={styles.avisoCheckbox}
                 />
                 <span className={styles.avisoText}>
-                  He leído y acepto el <a href="/aviso-privacidad" target="_blank" rel="noreferrer">Aviso de Privacidad</a>
+                  He leído y acepto el{' '}
+                  <button type="button" onClick={() => setShowAviso(true)} className={styles.linkBtn}>
+                    Aviso de Privacidad
+                  </button>
                 </span>
               </label>
             </div>
@@ -411,6 +416,12 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
           </form>
         </div>
       </div>
+
+      {showAviso && (
+        <div className={styles.avisoOverlay}>
+          <AvisoPrivacidadPage onBack={() => setShowAviso(false)} />
+        </div>
+      )}
 
     </div>
   );

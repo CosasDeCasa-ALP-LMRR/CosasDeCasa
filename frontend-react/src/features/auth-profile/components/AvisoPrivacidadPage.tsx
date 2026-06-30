@@ -65,7 +65,7 @@ export function AvisoPrivacidadPage({ onBack }: Props) {
           </section>
 
           <section className={styles.section}>
-            <h2>Datos personales recabados</h2>
+            <h2>Datos personales y sensibles recabados</h2>
             <p>
               Para las finalidades antes señaladas, se solicitan los siguientes datos personales:
             </p>
@@ -73,9 +73,14 @@ export function AvisoPrivacidadPage({ onBack }: Props) {
               <li>Nombre(s) y apellido(s) completos</li>
               <li>Correo electrónico</li>
               <li>Fotografías de perfil y evidencias de trabajo (portafolio)</li>
-              <li>Documentos de identificación y certificaciones profesionales</li>
+              <li>Documentos de identificación oficial (INE, pasaporte, etc.)</li>
+              <li>Certificaciones profesionales y Cédula Profesional</li>
               <li>Datos de ubicación o zona de servicio</li>
             </ul>
+            <p>
+              <strong>Tratamiento de documentos sensibles:</strong> Sus documentos de identificación oficial (INE, Cédula Profesional, entre otros) serán manejados <strong>estrictamente de forma manual por un Auditor</strong> designado por la plataforma. 
+              Una vez que su cuenta y perfil como profesionista hayan sido validados y verificados satisfactoriamente, <strong>estos documentos sensibles serán eliminados permanentemente</strong> de nuestros servidores por motivos de seguridad y privacidad.
+            </p>
           </section>
 
           <section className={styles.section}>
