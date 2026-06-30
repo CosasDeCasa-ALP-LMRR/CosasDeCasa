@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from 'lucide-react';
 import { login } from '../services/auth.service';
 import { useAuth } from '../../../context/AuthContext';
+import { AvisoPrivacidadPage } from './AvisoPrivacidadPage';
 import styles from './LoginPage.module.css';
 
 interface Props {
@@ -42,6 +43,7 @@ export function LoginPage({ onGoRegister }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [current, setCurrent] = useState(0);
+  const [showAviso, setShowAviso] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goTo = (index: number) => {
@@ -223,7 +225,10 @@ export function LoginPage({ onGoRegister }: Props) {
             </button>
 
             <p className={styles.privacyNoticeText}>
-              🔒 Al iniciar sesión, aceptas nuestro <a href="/aviso-privacidad" target="_blank" rel="noreferrer">Aviso de Privacidad</a>
+              🔒 Al iniciar sesión, aceptas nuestro{' '}
+              <button type="button" onClick={() => setShowAviso(true)} className={styles.linkBtn}>
+                Aviso de Privacidad
+              </button>
             </p>
           </form>
 
@@ -252,6 +257,12 @@ export function LoginPage({ onGoRegister }: Props) {
 
         </div>
       </div>
+
+      {showAviso && (
+        <div className={styles.avisoOverlay}>
+          <AvisoPrivacidadPage onBack={() => setShowAviso(false)} />
+        </div>
+      )}
 
     </div>
   );
