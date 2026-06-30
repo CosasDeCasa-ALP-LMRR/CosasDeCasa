@@ -45,8 +45,11 @@ export class PrismaPerfilRepository implements IPerfilRepository {
   }
 
   async findById(id: string): Promise<DomainPerfil | null> {
-    const prismaPerfil = await this.prismaService.perfil.findUnique({
-      where: { id },
+    const prismaPerfil = await this.prismaService.perfil.findFirst({
+      where: { 
+        id,
+        usuario: { situacion_cuenta: 'ACTIVA' }
+      },
       include: { documentos: true },
     });
 

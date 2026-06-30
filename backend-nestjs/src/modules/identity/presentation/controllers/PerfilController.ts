@@ -101,12 +101,16 @@ export class PerfilController {
 
   @Delete('cuenta')
   @UseGuards(MockAuthGuard)
-  async cancelAccount(@Req() req: any) {
+  async cancelAccount(@Req() req: any, @Body('justificacion') justificacion: string) {
+    if (!justificacion) {
+      throw new BadRequestException('Debe proveer una justificación para la cancelación.');
+    }
+
     const usuarioId = req.user.id;
-    await this.cancelAccountUseCase.execute(usuarioId);
+    await this.cancelAccountUseCase.execute(usuarioId, justificacion);
 
     return {
-      message: 'Cuenta eliminada y datos anonimizados correctamente en cumplimiento de Derechos ARCO.',
+      message: 'Solicitud de cancelación recibida. Los documentos sensibles han sido eliminados de acuerdo a la Ley ARCO y la cuenta está en revisión.',
       status: 'success'
     };
   }
