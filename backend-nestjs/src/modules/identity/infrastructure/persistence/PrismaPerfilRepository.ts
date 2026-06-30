@@ -49,9 +49,9 @@ export class PrismaPerfilRepository implements IPerfilRepository {
 
   async findById(id: string): Promise<DomainPerfil | null> {
     const prismaPerfil = await this.prismaService.perfil.findFirst({
-      where: { 
+      where: {
         id,
-        usuario: { situacion_cuenta: 'ACTIVA' }
+        usuario: { situacion_cuenta: 'ACTIVA' },
       },
       include: { documentos: true },
     });
