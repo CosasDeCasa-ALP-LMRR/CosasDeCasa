@@ -28,10 +28,13 @@ export class RefreshTokenUseCase {
 
   async execute(rawRefreshToken: string): Promise<RefreshTokenResult> {
     // 1. Hashear el token recibido para buscarlo en BD
-    const tokenHash = createHash('sha256').update(rawRefreshToken).digest('hex');
+    const tokenHash = createHash('sha256')
+      .update(rawRefreshToken)
+      .digest('hex');
 
     // 2. Buscar el refresh token en la base de datos
-    const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash);
+    const storedToken =
+      await this.refreshTokenRepository.findByTokenHash(tokenHash);
 
     if (!storedToken) {
       throw new UnauthorizedException('Refresh token inválido');
@@ -39,15 +42,21 @@ export class RefreshTokenUseCase {
 
     // 3. Verificar que no esté revocado ni expirado
     if (storedToken.revocado) {
-      throw new UnauthorizedException('Refresh token revocado. Por favor, inicia sesión nuevamente.');
+      throw new UnauthorizedException(
+        'Refresh token revocado. Por favor, inicia sesión nuevamente.',
+      );
     }
 
     if (new Date() > storedToken.expiresAt) {
-      throw new UnauthorizedException('Refresh token expirado. Por favor, inicia sesión nuevamente.');
+      throw new UnauthorizedException(
+        'Refresh token expirado. Por favor, inicia sesión nuevamente.',
+      );
     }
 
     // 4. Buscar el usuario asociado
-    const usuario = await this.usuarioRepository.findById(storedToken.usuarioId);
+    const usuario = await this.usuarioRepository.findById(
+      storedToken.usuarioId,
+    );
 
     if (!usuario || !usuario.activo) {
       throw new UnauthorizedException('Usuario no encontrado o inactivo');
