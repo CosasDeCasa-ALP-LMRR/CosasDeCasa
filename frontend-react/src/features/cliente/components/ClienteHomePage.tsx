@@ -9,10 +9,12 @@ import {
   Droplets, Bolt, PaintBucket, Trees, Sparkles, Hammer,
 } from 'lucide-react';
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
+import { createSolicitud } from '../../auth-profile/services/solicitud.service';
 import styles from './ClienteHomePage.module.css';
 
 interface Profesional {
   id: string;
+  usuarioId: string;
   usuario: { nombre: string; correo: string; fotoPerfil?: string | null };
   categoriaPrincipal: string;
   etiquetas: string[];
@@ -71,6 +73,20 @@ export function ClienteHomePage() {
   const handleVerPerfil = (id: string) => {
     window.history.pushState({}, '', `/perfil/${id}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const handleContact = async (profesionalId: string, correo: string) => {
+    try {
+      await createSolicitud({
+        profesionalId,
+        descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
+        esUrgencia: false,
+      });
+      window.location.href = `mailto:${correo}?subject=Solicitud de servicio - CosasDeCasa`;
+    } catch (err: unknown) {
+      console.error(err);
+      alert('No se pudo crear la solicitud. Asegúrate de estar autenticado como cliente y vuelve a intentar.');
+    }
   };
 
   if (loading) {
@@ -268,15 +284,26 @@ export function ClienteHomePage() {
                   </div>
 
                   {/* CTA */}
-                  <button
-                    className={styles.contactBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVerPerfil(prof.id);
-                    }}
-                  >
-                    Ver perfil
-                  </button>
+                  <div className={styles.cardButtons}>
+                    <button
+                      className={styles.contactBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVerPerfil(prof.id);
+                      }}
+                    >
+                      Ver perfil
+                    </button>
+                    <button
+                      className={styles.contactBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleContact(prof.usuarioId, prof.usuario.correo);
+                      }}
+                    >
+                      Contactar
+                    </button>
+                  </div>
                 </div>
               </article>
             ))

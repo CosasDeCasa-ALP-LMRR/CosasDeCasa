@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   User, Phone, AlignLeft, Briefcase, Tag, Calendar,
   Folder, AlertTriangle, CheckCircle, Save, Loader2,
-  RotateCcw, MapPin, Camera, ShieldCheck,
-
+  RotateCcw, MapPin, Camera, ShieldCheck, Mail,
   IdCard,
 } from 'lucide-react';
 
 import type { Perfil, UpdatePerfilPayload, DiaHorario, Documento } from '../types/perfil.types';
 import { CATEGORIAS_PRINCIPALES } from '../types/perfil.types';
 import { getMiPerfil, updatePerfil } from '../services/perfil.service';
+import { getSolicitudesRecibidas, changeSolicitudEstado } from '../services/solicitud.service';
 import { VerificationBadge } from './VerificationBadge';
 import { EtiquetasEditor } from './EtiquetasEditor';
 import { DisponibilidadEditor } from './DisponibilidadEditor';
@@ -20,12 +20,26 @@ import { sanitizeText, sanitizeArrayStrings, isSuspiciousText } from '../../../c
 import styles from './PerfilProfesionalPage.module.css';
 
 
-type TabId = 'informacion' | 'disponibilidad' | 'portafolio';
+type TabId = 'informacion' | 'disponibilidad' | 'portafolio' | 'solicitudes';
+
+interface SolicitudRecibida {
+  id: string;
+  clienteId: string;
+  clienteNombre?: string;
+  clienteCorreo?: string;
+  profesionalId: string;
+  descripcion: string;
+  estado: 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
+  esUrgencia: boolean;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+}
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'informacion', label: 'Información', icon: <User size={16} /> },
   { id: 'disponibilidad', label: 'Disponibilidad', icon: <Calendar size={16} /> },
   { id: 'portafolio', label: 'Portafolio', icon: <Folder size={16} /> },
+  { id: 'solicitudes', label: 'Solicitudes', icon: <Mail size={16} /> },
 ];
 
 export function PerfilProfesionalPage() {
@@ -37,6 +51,11 @@ export function PerfilProfesionalPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('informacion');
+  const [solicitudes, setSolicitudes] = useState<SolicitudRecibida[]>([]);
+  const [solicitudesLoading, setSolicitudesLoading] = useState(false);
+  const [solicitudesLoaded, setSolicitudesLoaded] = useState(false);
+  const [solicitudesError, setSolicitudesError] = useState<string | null>(null);
+  const [solicitudActionLoading, setSolicitudActionLoading] = useState<Record<string, boolean>>({});
 
   const [telefono, setTelefono] = useState('');
   const [biografia, setBiografia] = useState('');
@@ -88,12 +107,45 @@ export function PerfilProfesionalPage() {
     };
   }, [populateForm]);
 
+  useEffect(() => {
+    if (activeTab !== 'solicitudes' || solicitudesLoaded) return;
+    const load = async () => {
+      setSolicitudesError(null);
+      setSolicitudesLoading(true);
+      try {
+        const data = await getSolicitudesRecibidas();
+        setSolicitudes(data);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'No se pudieron cargar las solicitudes';
+        setSolicitudesError(msg);
+      } finally {
+        setSolicitudesLoading(false);
+        setSolicitudesLoaded(true);
+      }
+    };
+    load();
+  }, [activeTab, solicitudesLoaded]);
+
 
   const handleReset = () => {
     if (perfil) populateForm(perfil);
     setSaveError(null);
     setSaveSuccess(false);
     setFieldErrors({});
+  };
+
+  const handleEstadoSolicitud = async (solicitudId: string, estado: 'ACEPTADA' | 'RECHAZADA') => {
+    setSolicitudesError(null);
+    setSolicitudActionLoading((prev) => ({ ...prev, [solicitudId]: true }));
+    try {
+      const updated = await changeSolicitudEstado(solicitudId, estado);
+      setSolicitudes((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'No se pudo actualizar el estado de la solicitud';
+      setSolicitudesError(msg);
+    } finally {
+      setSolicitudActionLoading((prev) => ({ ...prev, [solicitudId]: false }));
+    }
   };
 
   const handleSave = async () => {
@@ -168,6 +220,7 @@ export function PerfilProfesionalPage() {
     informacion: 'Información profesional',
     disponibilidad: 'Disponibilidad',
     portafolio: 'Portafolio',
+    solicitudes: 'Solicitudes recibidas',
   };
 
   return (
@@ -445,6 +498,78 @@ export function PerfilProfesionalPage() {
                   diasYHorarios={diasYHorarios}
                   onChange={setDiasYHorarios}
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'solicitudes' && (
+          <div className={styles.content}>
+            <div className={styles.sectionCard}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                  <Mail size={15} />
+                  Solicitudes recibidas
+                </div>
+                <span className={styles.cardBadge}>{solicitudes.length} solicitud{solicitudes.length !== 1 ? 'es' : ''}</span>
+              </div>
+              <div className={styles.cardBody}>
+                {solicitudesLoading ? (
+                  <div className={styles.loadingState}>
+                    <Loader2 size={28} className={styles.spinner} />
+                    <p>Cargando solicitudes...</p>
+                  </div>
+                ) : solicitudesError ? (
+                  <div className={styles.errorState}>
+                    <AlertTriangle size={24} />
+                    <p>{solicitudesError}</p>
+                  </div>
+                ) : solicitudes.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p>No tienes solicitudes nuevas por el momento.</p>
+                    <p>Los clientes pueden contactarte desde el catálogo y tu perfil público.</p>
+                  </div>
+                ) : (
+                  <div className={styles.requestList}>
+                    {solicitudes.map((solicitud) => (
+                      <article key={solicitud.id} className={styles.requestCard}>
+                        <div className={styles.requestHeader}>
+                          <div>
+                            <strong>Solicitud #{solicitud.id.slice(0, 8)}</strong>
+                            <p className={styles.requestMeta}>
+                              Cliente: {solicitud.clienteNombre ?? solicitud.clienteCorreo ?? solicitud.clienteId}
+                              {solicitud.esUrgencia && ' · Urgente'}
+                            </p>
+                          </div>
+                          <span className={`${styles.requestBadge} ${styles[`requestStatus${solicitud.estado}`]}`}>
+                            {solicitud.estado}
+                          </span>
+                        </div>
+                        <p className={styles.requestDescription}>
+                          {sanitizeText(solicitud.descripcion || 'Sin descripción adicional')}
+                        </p>
+                        <div className={styles.requestActions}>
+                          <button
+                            type="button"
+                            disabled={solicitud.estado !== 'PENDIENTE' || solicitudActionLoading[solicitud.id]}
+                            className={styles.requestActionBtn}
+                            onClick={() => handleEstadoSolicitud(solicitud.id, 'ACEPTADA')}
+                          >
+                            {solicitudActionLoading[solicitud.id] ? 'Procesando...' : 'Aceptar'}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={solicitud.estado !== 'PENDIENTE' || solicitudActionLoading[solicitud.id]}
+                            className={`${styles.requestActionBtn} ${styles.requestRejectBtn}`}
+                            onClick={() => handleEstadoSolicitud(solicitud.id, 'RECHAZADA')}
+                          >
+                            {solicitudActionLoading[solicitud.id] ? 'Procesando...' : 'Rechazar'}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

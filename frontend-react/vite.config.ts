@@ -7,13 +7,18 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Proxy /identity & /auth routes to NestJS backend
+      // Proxy /identity, /auth, /match and /uploads routes to NestJS backend
       '/identity': {
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
       '/auth': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/match': {
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
