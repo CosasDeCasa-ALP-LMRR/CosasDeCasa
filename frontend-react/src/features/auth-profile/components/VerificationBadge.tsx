@@ -2,7 +2,7 @@
  * @fileoverview Verification Badge Component for RF2
  */
 import type { EstadoVerificacion } from '../types/perfil.types';
-import { ShieldCheck, ShieldAlert, ShieldX, Clock } from 'lucide-react';
+import { ShieldCheck, ShieldX, Clock } from 'lucide-react';
 import styles from './VerificationBadge.module.css';
 
 interface Props {
