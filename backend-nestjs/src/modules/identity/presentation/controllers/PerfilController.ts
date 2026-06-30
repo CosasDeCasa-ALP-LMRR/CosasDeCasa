@@ -4,6 +4,17 @@
  * @date 23/06/2026
  * @requirement RF2: Gestión Integral del Perfil del Profesional y Portafolio
  */
+/**
+ * @modified 26/06/2026
+ * @author Luis Manuel
+ * @requirement RF1: API de Registro, Autenticación y Control de Roles
+ * @changes Se sustituyó MockAuthGuard por JwtAuthGuard en todos los endpoints protegidos.
+ *          Ahora la autenticación se valida mediante el token JWT almacenado en la cookie HttpOnly.
+ * @modified 28/06/2026
+ * @author Luis Manuel
+ * @requirement RF3: Aviso de Privacidad y Consentimiento Explícito
+ * @changes Se agregó la validación obligatoria de `consentimientoIA` en el endpoint POST /documentos.
+ */
 
 import {
   Controller,
@@ -21,7 +32,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MockAuthGuard } from '../guards/mock-auth.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../guards/roles.decorator';
 import { UpdatePerfilDto } from '../../application/dtos/UpdatePerfil.dto';
@@ -33,6 +44,9 @@ import { DeleteDocumentoUseCase } from '../../application/use-cases/DeleteDocume
 import { VerifyPerfilUseCase } from '../../application/use-cases/VerifyPerfil.use-case';
 import { CancelAccountUseCase } from '../../application/use-cases/CancelAccount.use-case';
 
+import { GetPerfilesPendientesUseCase } from '../../application/use-cases/GetPerfilesPendientes.use-case';
+import { GetProfesionalesUseCase } from '../../application/use-cases/GetProfesionales.use-case';
+
 @Controller('identity/perfiles')
 export class PerfilController {
   constructor(
@@ -42,38 +56,62 @@ export class PerfilController {
     private readonly deleteDocumentoUseCase: DeleteDocumentoUseCase,
     private readonly verifyPerfilUseCase: VerifyPerfilUseCase,
     private readonly cancelAccountUseCase: CancelAccountUseCase,
-  ) { }
+    private readonly getPerfilesPendientesUseCase: GetPerfilesPendientesUseCase,
+    private readonly getProfesionalesUseCase: GetProfesionalesUseCase,
+  ) {}
 
   @Get('mi')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async getMiPerfil(@Req() req: any) {
     return await this.getPerfilUseCase.executeByUsuarioId(req.user.id);
   }
 
+  @Get('pendientes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('AUDITOR')
+  async getPerfilesPendientes() {
+    return await this.getPerfilesPendientesUseCase.execute();
+  }
+
+  @Get()
+  async getProfesionales() {
+    // Endpoint público — cualquier usuario puede ver la lista de profesionales aprobados.
+    return await this.getProfesionalesUseCase.execute();
+  }
+
   @Get(':id')
   async getPerfilPublico(@Param('id') id: string) {
+    // Endpoint público — cualquier usuario puede ver el detalle de un perfil.
     return await this.getPerfilUseCase.executeById(id);
   }
 
   @Put()
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async updatePerfil(@Req() req: any, @Body() dto: UpdatePerfilDto) {
     return await this.updatePerfilUseCase.execute(req.user.id, dto);
   }
 
   @Post('documentos')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocumento(
     @Req() req: any,
     @UploadedFile() file: any,
     @Body('tipo') tipo: string,
+    @Body('consentimientoIA') consentimientoIA?: string,
   ) {
     if (!file) {
       throw new BadRequestException('El archivo es requerido');
+    }
+    
+    // RF3: Validación obligatoria de consentimiento para procesamiento de datos
+    if (consentimientoIA !== 'true') {
+      throw new BadRequestException(
+        'Debe otorgar su consentimiento explícito para el tratamiento del documento mediante IA.',
+      );
     }
     return await this.addDocumentoUseCase.execute(
       req.user.id,
@@ -85,22 +123,25 @@ export class PerfilController {
   }
 
   @Delete('documentos/:documentoId')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
-  async deleteDocumento(@Req() req: any, @Param('documentoId') documentoId: string) {
+  async deleteDocumento(
+    @Req() req: any,
+    @Param('documentoId') documentoId: string,
+  ) {
     await this.deleteDocumentoUseCase.execute(req.user.id, documentoId);
     return { message: 'Documento eliminado exitosamente' };
   }
 
   @Patch(':id/verificacion')
-  @UseGuards(MockAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUDITOR')
   async verifyPerfil(@Param('id') id: string, @Body() dto: VerifyPerfilDto) {
     return await this.verifyPerfilUseCase.execute(id, dto.estado);
   }
 
   @Delete('cuenta')
-  @UseGuards(MockAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async cancelAccount(@Req() req: any, @Body('justificacion') justificacion: string) {
     if (!justificacion) {
       throw new BadRequestException('Debe proveer una justificación para la cancelación.');

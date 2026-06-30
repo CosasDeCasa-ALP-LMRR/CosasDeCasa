@@ -1,122 +1,169 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+/**
+ * @fileoverview App root — routing shell con autenticación para CosasDeCasa
+ * Maneja: Login → Register → Perfil profesional (RF1 + RF2)
+ */
+import { useState, useEffect } from 'react';
+import { User, Home, LogOut, Loader2 } from 'lucide-react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginPage } from './features/auth-profile/components/LoginPage';
+import { RegisterPage } from './features/auth-profile/components/RegisterPage';
+import { LandingPublicHomePage } from './features/auth-profile/components/LandingPublicHomePage';
+import { PerfilProfesionalPage } from './features/auth-profile/components/PerfilProfesionalPage';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { AuditorDashboardPage } from './features/auditor/components/AuditorDashboardPage';
+import { ClienteHomePage } from './features/cliente/components/ClienteHomePage';
+import { ProfileAvatar } from './features/auth-profile/components/ProfileAvatar';
+import { PerfilProfesionalPublicoPage } from './features/auth-profile/components/PerfilProfesionalPublicoPage';
+import { AvisoPrivacidadPage } from './features/auth-profile/components/AvisoPrivacidadPage';
+import { AvisoPrivacidadSimplificadoPage } from './features/auth-profile/components/AvisoPrivacidadSimplificadoPage';
+import './App.css';
+
+// ─── Auth screen (Landing) ───────────────────────────────────────────────
+type AuthScreen = 'login' | 'register';
+
+
+// ─── Authenticated shell with navbar ─────────────────────────────────────
+function AppShell() {
+  const { logout, role } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [path, setPath] = useState(window.location.pathname);
+
+  // Listen to browser navigation events so pushState/popState re-renders
+  useEffect(() => {
+    const handleNav = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', handleNav);
+    return () => window.removeEventListener('popstate', handleNav);
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await logout();
+    setLoggingOut(false);
+  };
+
+  const isPublicProfilePath = path.startsWith('/perfil/');
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Vista Principal - Cosas de Casa</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-shell">
+      <nav className="app-navbar" aria-label="Navegación principal">
+        <a href="/" className="app-navbar-brand">
+          Cosas<span>de</span>Casa
+        </a>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="app-navbar-nav">
+          <a href="/" className={`app-nav-link ${path === '/' ? 'active' : ''}`}>
+            <Home size={16} />
+            Inicio
+          </a>
+          {role === 'PROFESIONAL' && (
+            <a href="/perfil" className={`app-nav-link ${path === '/perfil' ? 'active' : ''}`}>
+              <User size={16} />
+              Mi Perfil
+            </a>
+          )}
+          <div style={{ marginLeft: '12px', marginRight: '12px' }}>
+            <ProfileAvatar size={36} editable={true} />
+          </div>
+          <button
+            id="btn-logout"
+            className="app-nav-link"
+            onClick={handleLogout}
+            disabled={loggingOut}
+          >
+            {loggingOut
+              ? <Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} />
+              : <LogOut size={16} />}
+            Salir
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </nav>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="app-main">
+        {isPublicProfilePath ? (
+           <PerfilProfesionalPublicoPage />
+        ) : (
+          <>
+            {path === '/aviso-privacidad' && (
+              <AvisoPrivacidadPage onBack={() => { window.history.pushState({}, '', '/'); setPath('/'); }} />
+            )}
+            {role === 'PROFESIONAL' && path === '/perfil' && <PerfilProfesionalPage />}
+            {role === 'PROFESIONAL' && path === '/' && <PerfilProfesionalPage />}
+            {role === 'AUDITOR' && <AuditorDashboardPage />}
+            {role === 'CLIENTE' && <ClienteHomePage />}
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
 
-export default App
+// ─── Root router — checks session first ──────────────────────────────────
+function AppRouter() {
+  const { isAuthenticated, checking } = useAuth();
+  const [authMode, setAuthMode] = useState<AuthScreen | null>(null);
+  const [path, setPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handleNav = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', handleNav);
+    return () => window.removeEventListener('popstate', handleNav);
+  }, []);
+
+  if (checking) {
+    return (
+      <div className="app-loading">
+        <Loader2 size={36} className="app-loading-spinner" />
+        <p>Verificando sesión...</p>
+      </div>
+    );
+  }
+
+  // Rutas que pueden verse sin estar logueado, como el aviso de privacidad
+  if (path === '/aviso-privacidad') {
+    return (
+      <AvisoPrivacidadPage
+        onBack={() => {
+          window.history.pushState({}, '', '/');
+          setPath('/');
+        }}
+      />
+    );
+  }
+
+  if (path === '/aviso-privacidad-simplificado') {
+    return (
+      <AvisoPrivacidadSimplificadoPage
+        onBack={() => {
+          window.history.pushState({}, '', '/');
+          setPath('/');
+        }}
+      />
+    );
+  }
+
+  if (isAuthenticated) return <AppShell />;
+
+  // Landing para no autenticados (con carrusel)
+  if (!authMode) {
+    return <LandingPublicHomePage />;
+  }
+
+  return authMode === 'register' ? (
+    <RegisterPage onGoLogin={() => setAuthMode('login')} />
+  ) : (
+    <LoginPage onGoRegister={() => setAuthMode('register')} />
+  );
+
+}
+
+
+// ─── App entry point ──────────────────────────────────────────────────────
+function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  );
+}
+
+export default App;

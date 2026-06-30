@@ -70,6 +70,7 @@ model Usuario {
   // Borrado lógico para Derechos ARCO
   activo           Boolean      @default(true) 
   situacion_cuenta SituacionCuenta @default(ACTIVA)
+  fotoPerfil       String?      // URL de la foto de perfil (para todos los usuarios)
   fechaCreacion    DateTime     @default(now())
   fechaActualizacion DateTime   @updatedAt
 
@@ -82,6 +83,7 @@ model Usuario {
   resenasRecibidas Resena[]     @relation("ProfesionalResenas")
   solicitudesCancelacion SolicitudCancelacion[] @relation("UsuarioSolicitudCancelacion")
   solicitudesCancelacionAuditor SolicitudCancelacion[] @relation("AuditorSolicitudCancelacion")
+  refreshTokens    RefreshToken[]        // RF1/RNF1 - Luis Manuel
 }
 
 model SolicitudCancelacion {
@@ -99,6 +101,7 @@ model SolicitudCancelacion {
   fechaSolicitud   DateTime     @default(now())
   fechaResolucion  DateTime?
 }
+
 
 model Perfil {
   id                   String             @id @default(uuid())
@@ -168,3 +171,16 @@ model BitacoraAuditoria {
   entidadAfectada  String   // Ej. "PERFIL_ID_123"
   fechaAccion      DateTime @default(now())
 }
+
+// RF1/RNF1 - Refresh Token (Luis Manuel - 28/06/2026)
+// Se almacena el hash del token (no el token en texto plano) para mayor seguridad.
+model RefreshToken {
+  id          String   @id @default(uuid())
+  usuarioId   String
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique  // SHA-256 del refresh token
+  expiresAt   DateTime
+  revocado    Boolean  @default(false)
+  creadoEn    DateTime @default(now())
+}
+

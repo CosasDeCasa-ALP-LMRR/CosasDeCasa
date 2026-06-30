@@ -14,9 +14,11 @@ export class PerfilEventosListener {
   private readonly logger = new Logger(PerfilEventosListener.name);
 
   @OnEvent('perfil.verificacion-actualizada')
-  handlePerfilVerificacionActualizada(event: PerfilVerificacionActualizadaEvent) {
+  handlePerfilVerificacionActualizada(
+    event: PerfilVerificacionActualizadaEvent,
+  ) {
     this.logger.log(
-      `[OBSERVADOR - SEARCH REVIEW MODULE] Capturando evento 'perfil.verificacion-actualizada': Perfil ID ${event.perfilId} del Usuario ${event.usuarioId} cambió su estado de verificación a: ${event.nuevoEstado}`
+      `[OBSERVADOR - SEARCH REVIEW MODULE] Capturando evento 'perfil.verificacion-actualizada': Perfil ID ${event.perfilId} del Usuario ${event.usuarioId} cambió su estado de verificación a: ${event.nuevoEstado}`,
     );
     // Here we would run database calculations or update elasticsearch/search indices.
   }

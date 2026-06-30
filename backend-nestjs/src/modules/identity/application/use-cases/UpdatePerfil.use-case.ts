@@ -15,7 +15,7 @@ import { GetPerfilUseCase } from './GetPerfil.use-case';
 export class UpdatePerfilUseCase {
   constructor(
     private readonly perfilRepository: IPerfilRepository,
-    private readonly getPerfilUseCase: GetPerfilUseCase
+    private readonly getPerfilUseCase: GetPerfilUseCase,
   ) {}
 
   async execute(usuarioId: string, dto: UpdatePerfilDto): Promise<Perfil> {
@@ -24,10 +24,13 @@ export class UpdatePerfilUseCase {
     // Update domain properties
     if (dto.telefono !== undefined) perfil.telefono = dto.telefono;
     if (dto.biografia !== undefined) perfil.biografia = dto.biografia;
-    if (dto.categoriaPrincipal !== undefined) perfil.categoriaPrincipal = dto.categoriaPrincipal;
+    if (dto.categoriaPrincipal !== undefined)
+      perfil.categoriaPrincipal = dto.categoriaPrincipal;
     if (dto.etiquetas !== undefined) perfil.etiquetas = dto.etiquetas;
-    if (dto.aceptaUrgencias !== undefined) perfil.aceptaUrgencias = dto.aceptaUrgencias;
-    if (dto.diasYHorarios !== undefined) perfil.diasYHorarios = dto.diasYHorarios;
+    if (dto.aceptaUrgencias !== undefined)
+      perfil.aceptaUrgencias = dto.aceptaUrgencias;
+    if (dto.diasYHorarios !== undefined)
+      perfil.diasYHorarios = dto.diasYHorarios;
 
     return await this.perfilRepository.save(perfil);
   }

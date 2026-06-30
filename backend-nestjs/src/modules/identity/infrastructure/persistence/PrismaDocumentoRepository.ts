@@ -21,7 +21,7 @@ export class PrismaDocumentoRepository implements IDocumentoRepository {
       prismaDoc.perfilId,
       prismaDoc.tipo,
       prismaDoc.urlArchivo,
-      prismaDoc.fechaSubida
+      prismaDoc.fechaSubida,
     );
   }
 
