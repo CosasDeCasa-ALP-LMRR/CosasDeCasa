@@ -6,11 +6,13 @@
 import { useEffect, useState } from 'react';
 import {
   Star, MapPin, Zap, Loader2, Phone, Mail,
-  ArrowLeft, User, Clock, Folder, ShieldCheck,
-  Tag, FileText,
+  ArrowLeft, User, Folder, ShieldCheck,
+  FileText,
 } from 'lucide-react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { VerificationBadge } from './VerificationBadge';
 import { ImageCarousel } from './ImageCarousel';
+import { sanitizeText } from '../../../context/sanitize';
 import styles from './PerfilProfesionalPublicoPage.module.css';
 
 type PublicProfileEstado = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
@@ -301,7 +303,7 @@ export function PerfilProfesionalPublicoPage() {
             </div>
             <div className={styles.cardBody}>
               {perfil.biografia ? (
-                <p className={styles.bioText}>{perfil.biografia}</p>
+                <p className={styles.bioText}>{sanitizeText(perfil.biografia)}</p>
               ) : (
                 <p className={styles.bioEmpty}>Este profesional aún no ha escrito una descripción.</p>
               )}

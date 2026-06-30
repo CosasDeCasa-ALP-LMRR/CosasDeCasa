@@ -8,6 +8,7 @@ import {
   Search, Star, MapPin, Loader2, Zap,
   Droplets, Bolt, PaintBucket, Trees, Sparkles, Hammer,
 } from 'lucide-react';
+import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
 import styles from './ClienteHomePage.module.css';
 
 interface Profesional {
@@ -42,6 +43,7 @@ export function ClienteHomePage() {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [categoriaActiva, setCategoriaActiva] = useState<string | null>(null);
 
   useEffect(() => {
@@ -108,17 +110,25 @@ export function ClienteHomePage() {
               <Search size={18} className={styles.searchIcon} aria-hidden="true" />
               <input
                 type="text"
-                className={styles.searchInput}
+                className={[styles.searchInput, searchError ? styles.inputError : ''].join(' ')}
                 placeholder="¿Qué necesitas? Ej. plomería, pintura..."
                 value={searchTerm}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
+                  const value = e.target.value;
+                  if (isSuspiciousText(value)) {
+                    setSearchError('No se permiten etiquetas ni caracteres sospechosos en la búsqueda.');
+                    setSearchTerm('');
+                  } else {
+                    setSearchError(null);
+                    setSearchTerm(sanitizeText(value, 100));
+                  }
                   setCategoriaActiva(null);
                 }}
               />
             </div>
-            <button className={styles.searchBtn}>Buscar</button>
+            <button className={styles.searchBtn} disabled={!!searchError}>Buscar</button>
           </div>
+          {searchError && <p className={styles.searchError}>{searchError}</p>}
 
           <div className={styles.heroStats}>
             <div className={styles.hStat}>

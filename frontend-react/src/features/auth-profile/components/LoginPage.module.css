@@ -267,6 +267,19 @@
   color: var(--text-muted);
 }
 
+.inputError {
+  border-color: var(--error-color) !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--error-color);
+}
+
 .eyeBtn {
   position: absolute;
   right: 10px;

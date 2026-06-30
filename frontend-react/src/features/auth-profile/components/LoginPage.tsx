@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from 'lucide-react';
 import { login } from '../services/auth.service';
 import { useAuth } from '../../../context/AuthContext';
+import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
 import styles from './LoginPage.module.css';
 
 interface Props {
@@ -41,6 +42,7 @@ export function LoginPage({ onGoRegister }: Props) {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ correo?: string; password?: string }>({});
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -64,9 +66,20 @@ export function LoginPage({ onGoRegister }: Props) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (Object.values(fieldErrors).some(Boolean)) {
+      setError('Corrige los campos con errores antes de continuar.');
+      return;
+    }
+
+    if (!correo || !password) {
+      setError('Correo y contraseña son obligatorios.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await login({ correo, password });
+      await login({ correo: sanitizeText(correo, 100), password });
       await loginCtx();
     } catch (err: any) {
       setError(err.message ?? 'Correo o contraseña incorrectos');
@@ -170,14 +183,26 @@ export function LoginPage({ onGoRegister }: Props) {
                 <input
                   id="login-correo"
                   type="email"
-                  className={styles.input}
+                  className={[styles.input, fieldErrors.correo ? styles.inputError : ''].join(' ')}
                   value={correo}
-                  onChange={e => setCorreo(e.target.value)}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors(p => ({
+                        ...p,
+                        correo: 'No se permiten etiquetas ni caracteres sospechosos.',
+                      }));
+                    } else {
+                      setCorreo(sanitizeText(value, 100));
+                      setFieldErrors(p => ({ ...p, correo: undefined }));
+                    }
+                  }}
                   placeholder="tu@correo.com"
                   autoComplete="email"
                   required
                 />
               </div>
+              {fieldErrors.correo && <p className={styles.fieldError}>{fieldErrors.correo}</p>}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -191,9 +216,20 @@ export function LoginPage({ onGoRegister }: Props) {
                 <input
                   id="login-password"
                   type={showPwd ? 'text' : 'password'}
-                  className={styles.input}
+                  className={[styles.input, fieldErrors.password ? styles.inputError : ''].join(' ')}
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors(p => ({
+                        ...p,
+                        password: 'Caracteres sospechosos detectados en la contraseña.',
+                      }));
+                    } else {
+                      setPassword(value);
+                      setFieldErrors(p => ({ ...p, password: undefined }));
+                    }
+                  }}
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
@@ -207,13 +243,14 @@ export function LoginPage({ onGoRegister }: Props) {
                   {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+              {fieldErrors.password && <p className={styles.fieldError}>{fieldErrors.password}</p>}
             </div>
 
             <button
               id="btn-login"
               type="submit"
               className={styles.submitBtn}
-              disabled={loading || !correo || !password}
+              disabled={loading || !correo || !password || Object.values(fieldErrors).some(Boolean)}
             >
               {loading
                 ? <Loader2 size={17} className={styles.spinner} />

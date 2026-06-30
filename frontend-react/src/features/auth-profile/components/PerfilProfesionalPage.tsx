@@ -16,7 +16,7 @@ import { DisponibilidadEditor } from './DisponibilidadEditor';
 import { PortafolioManager } from './PortafolioManager';
 import { ProfileAvatar } from './ProfileAvatar';
 import { useAuth } from '../../../context/AuthContext';
-import { sanitizeText, sanitizeArrayStrings } from '../../../context/sanitize';
+import { sanitizeText, sanitizeArrayStrings, isSuspiciousText } from '../../../context/sanitize';
 import styles from './PerfilProfesionalPage.module.css';
 
 
@@ -42,6 +42,12 @@ export function PerfilProfesionalPage() {
   const [biografia, setBiografia] = useState('');
   const [categoriaPrincipal, setCategoriaPrincipal] = useState('');
   const [etiquetas, setEtiquetas] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{
+    telefono?: string;
+    biografia?: string;
+    categoriaPrincipal?: string;
+    etiquetas?: string;
+  }>({});
   const [aceptaUrgencias, setAceptaUrgencias] = useState(false);
   const [diasYHorarios, setDiasYHorarios] = useState<DiaHorario[]>([]);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
@@ -87,9 +93,15 @@ export function PerfilProfesionalPage() {
     if (perfil) populateForm(perfil);
     setSaveError(null);
     setSaveSuccess(false);
+    setFieldErrors({});
   };
 
   const handleSave = async () => {
+    if (Object.values(fieldErrors).some(Boolean)) {
+      setSaveError('Corrige los campos con errores antes de guardar.');
+      return;
+    }
+
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
@@ -314,11 +326,23 @@ export function PerfilProfesionalPage() {
                     <input
                       id="telefono"
                       type="tel"
-                      className={styles.fieldInput}
+                      className={[styles.fieldInput, fieldErrors.telefono ? styles.fieldInputError : ''].join(' ')}
                       value={telefono}
-                      onChange={(e) => setTelefono(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (isSuspiciousText(value)) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            telefono: 'No se permiten etiquetas ni caracteres sospechosos en el teléfono.',
+                          }));
+                        } else {
+                          setTelefono(sanitizeText(value, 30));
+                          setFieldErrors((prev) => ({ ...prev, telefono: undefined }));
+                        }
+                      }}
                       placeholder="+52 55 1234 5678"
                     />
+                    {fieldErrors.telefono && <p className={styles.fieldError}>{fieldErrors.telefono}</p>}
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.fieldLabel} htmlFor="categoria">
@@ -326,9 +350,20 @@ export function PerfilProfesionalPage() {
                     </label>
                     <select
                       id="categoria"
-                      className={styles.fieldInput}
+                      className={[styles.fieldInput, fieldErrors.categoriaPrincipal ? styles.fieldInputError : ''].join(' ')}
                       value={categoriaPrincipal}
-                      onChange={(e) => setCategoriaPrincipal(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (isSuspiciousText(value)) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            categoriaPrincipal: 'Selección inválida detectada.',
+                          }));
+                        } else {
+                          setCategoriaPrincipal(sanitizeText(value, 50));
+                          setFieldErrors((prev) => ({ ...prev, categoriaPrincipal: undefined }));
+                        }
+                      }}
                     >
                       <option value="">— Seleccionar —</option>
                       {CATEGORIAS_PRINCIPALES.map((cat) => (
@@ -353,14 +388,24 @@ export function PerfilProfesionalPage() {
               </div>
               <div className={styles.cardBody}>
                 <textarea
-                  className={styles.fieldInput}
+                  className={[styles.fieldInput, fieldErrors.biografia ? styles.fieldInputError : ''].join(' ')}
                   value={biografia}
                   onChange={(e) => {
-                    if (e.target.value.length <= bioMax) setBiografia(e.target.value);
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        biografia: 'No se permiten etiquetas ni caracteres sospechosos en la biografía.',
+                      }));
+                    } else if (value.length <= bioMax) {
+                      setBiografia(value);
+                      setFieldErrors((prev) => ({ ...prev, biografia: undefined }));
+                    }
                   }}
                   rows={5}
                   placeholder="Describe tu experiencia, especialidades y qué te hace único como profesional..."
                 />
+                {fieldErrors.biografia && <p className={styles.fieldError}>{fieldErrors.biografia}</p>}
               </div>
             </div>
 

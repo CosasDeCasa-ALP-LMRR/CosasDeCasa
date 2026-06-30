@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { register } from '../services/auth.service';
 import { useAuth } from '../../../context/AuthContext';
+import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
 import styles from './RegisterPage.module.css';
 
 interface Props {
@@ -115,15 +116,27 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+
     const errors = validate(nombre, correo, password, confirm);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
     }
+
+    if (Object.values(fieldErrors).some(Boolean)) {
+      setError('Corrige los campos con errores antes de continuar.');
+      return;
+    }
+
     setFieldErrors({});
     setLoading(true);
     try {
-      await register({ nombre, correo, password, rol });
+      await register({
+        nombre: sanitizeText(nombre, 100),
+        correo: sanitizeText(correo, 100),
+        password,
+        rol,
+      });
       setSuccess(true);
       // Redirigir al login después de mostrar el mensaje de éxito
       setTimeout(() => onGoLogin(), 1800);
@@ -281,7 +294,18 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
                   type="text"
                   className={[styles.input, fieldErrors.nombre ? styles.inputError : ''].join(' ')}
                   value={nombre}
-                  onChange={e => { setNombre(e.target.value); setFieldErrors(p => ({ ...p, nombre: undefined })); }}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors(p => ({
+                        ...p,
+                        nombre: 'No se permiten etiquetas HTML ni caracteres sospechosos.',
+                      }));
+                    } else {
+                      setNombre(sanitizeText(value, 100));
+                      setFieldErrors(p => ({ ...p, nombre: undefined }));
+                    }
+                  }}
                   placeholder="Tu nombre completo"
                   autoComplete="name"
                 />
@@ -300,7 +324,18 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
                   type="email"
                   className={[styles.input, fieldErrors.correo ? styles.inputError : ''].join(' ')}
                   value={correo}
-                  onChange={e => { setCorreo(e.target.value); setFieldErrors(p => ({ ...p, correo: undefined })); }}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors(p => ({
+                        ...p,
+                        correo: 'No se permiten etiquetas ni caracteres sospechosos.',
+                      }));
+                    } else {
+                      setCorreo(sanitizeText(value, 100));
+                      setFieldErrors(p => ({ ...p, correo: undefined }));
+                    }
+                  }}
                   placeholder="tu@correo.com"
                   autoComplete="email"
                 />
@@ -319,7 +354,18 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
                   type={showPwd ? 'text' : 'password'}
                   className={[styles.input, fieldErrors.password ? styles.inputError : ''].join(' ')}
                   value={password}
-                  onChange={e => { setPassword(e.target.value); setFieldErrors(p => ({ ...p, password: undefined })); }}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors(p => ({
+                        ...p,
+                        password: 'Caracteres sospechosos detectados en la contraseña.',
+                      }));
+                    } else {
+                      setPassword(value);
+                      setFieldErrors(p => ({ ...p, password: undefined }));
+                    }
+                  }}
                   placeholder="Mínimo 8 caracteres"
                   autoComplete="new-password"
                 />
@@ -361,7 +407,18 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
                   type={showConfirm ? 'text' : 'password'}
                   className={[styles.input, fieldErrors.confirm ? styles.inputError : ''].join(' ')}
                   value={confirm}
-                  onChange={e => { setConfirm(e.target.value); setFieldErrors(p => ({ ...p, confirm: undefined })); }}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors(p => ({
+                        ...p,
+                        confirm: 'Caracteres sospechosos detectados en la confirmación.',
+                      }));
+                    } else {
+                      setConfirm(value);
+                      setFieldErrors(p => ({ ...p, confirm: undefined }));
+                    }
+                  }}
                   placeholder="Repite tu contraseña"
                   autoComplete="new-password"
                 />
@@ -395,7 +452,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
               id="btn-register"
               type="submit"
               className={styles.submitBtn}
-              disabled={loading || !aceptoAviso}
+              disabled={loading || !aceptoAviso || Object.values(fieldErrors).some(Boolean)}
               title={!aceptoAviso ? 'Debes aceptar el aviso de privacidad' : ''}
             >
               {loading

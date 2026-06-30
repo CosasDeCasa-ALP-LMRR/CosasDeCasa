@@ -214,6 +214,17 @@
   gap: 10px;
 }
 
+.inputError {
+  border: 1px solid var(--error-color);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+}
+
+.searchError {
+  margin-top: 8px;
+  color: var(--error-color);
+  font-size: 0.875rem;
+}
+
 .catChip {
   background: var(--surface-1);
   border: 1px solid var(--border-color);
