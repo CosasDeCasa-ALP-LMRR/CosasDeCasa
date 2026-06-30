@@ -7,6 +7,7 @@ import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from 'lucide-rea
 import { login } from '../services/auth.service';
 import { useAuth } from '../../../context/AuthContext';
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
+import { AvisoPrivacidadPage } from './AvisoPrivacidadPage';
 import styles from './LoginPage.module.css';
 
 interface Props {
@@ -44,6 +45,7 @@ export function LoginPage({ onGoRegister }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ correo?: string; password?: string }>({});
   const [current, setCurrent] = useState(0);
+  const [showAviso, setShowAviso] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goTo = (index: number) => {
@@ -81,6 +83,7 @@ export function LoginPage({ onGoRegister }: Props) {
     try {
       await login({ correo: sanitizeText(correo, 100), password });
       await loginCtx();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message ?? 'Correo o contraseña incorrectos');
     } finally {
@@ -260,7 +263,10 @@ export function LoginPage({ onGoRegister }: Props) {
             </button>
 
             <p className={styles.privacyNoticeText}>
-              🔒 Al iniciar sesión, aceptas nuestro <a href="/aviso-privacidad" target="_blank" rel="noreferrer">Aviso de Privacidad</a>
+              🔒 Al iniciar sesión, aceptas nuestro{' '}
+              <button type="button" onClick={() => setShowAviso(true)} className={styles.linkBtn}>
+                Aviso de Privacidad
+              </button>
             </p>
           </form>
 
@@ -289,6 +295,12 @@ export function LoginPage({ onGoRegister }: Props) {
 
         </div>
       </div>
+
+      {showAviso && (
+        <div className={styles.avisoOverlay}>
+          <AvisoPrivacidadPage onBack={() => setShowAviso(false)} />
+        </div>
+      )}
 
     </div>
   );

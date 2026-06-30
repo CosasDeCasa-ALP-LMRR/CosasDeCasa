@@ -421,6 +421,33 @@
   color: var(--accent-hover);
 }
 
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 500;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.linkBtn:hover {
+  color: var(--accent-hover);
+}
+
+.avisoOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-color);
+  z-index: 9999;
+  overflow-y: auto;
+}
+
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .brandPanel {

@@ -156,7 +156,8 @@ export function LandingPublicHomePage() {
   }
 
   return (
-    <div className={styles.page}>
+    <>
+      <div className={styles.page}>
 
       {/* ══════════ HERO ══════════ */}
       <header className={styles.hero}>
@@ -379,6 +380,16 @@ export function LandingPublicHomePage() {
           </div>
         </div>
 
+        <div className={styles.avisosLinksContainer}>
+          <a href="/aviso-privacidad-simplificado" target="_blank" rel="noreferrer" className={styles.btnAviso}>
+            Ver Aviso de Privacidad Simplificado
+          </a>
+          <span className={styles.separator}>|</span>
+          <a href="/aviso-privacidad" target="_blank" rel="noreferrer" className={styles.btnAviso}>
+            Ver Aviso de Privacidad Integral
+          </a>
+        </div>
+
       </main>
 
       {/* ══════════ FOOTER ══════════ */}
@@ -402,7 +413,7 @@ export function LandingPublicHomePage() {
           </p>
         </div>
       </footer>
-
     </div>
+    </>
   );
 }
