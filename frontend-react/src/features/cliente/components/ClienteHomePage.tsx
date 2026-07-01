@@ -1,14 +1,13 @@
-/**
- * @fileoverview Página principal para clientes — Catálogo de profesionales
- * Rediseño: Hero de impacto con color + chips de categoría + grid de cards.
- * Funcionalidad idéntica al original.
- */
 import { useEffect, useState } from 'react';
 import {
   Search, Star, MapPin, Loader2, Zap,
   Droplets, Bolt, PaintBucket, Trees, Sparkles, Hammer,
+  Trash2
 } from 'lucide-react';
 import styles from './ClienteHomePage.module.css';
+import { cancelAccount } from '../../auth-profile/services/perfil.service';
+import { CancelAccountModal } from '../../auth-profile/components/CancelAccountModal';
+import { logout } from '../../auth-profile/services/auth.service';
 
 interface Profesional {
   id: string;
@@ -44,6 +43,10 @@ export function ClienteHomePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState<string | null>(null);
 
+  // Estados para Eliminación de Cuenta
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false);
+
   useEffect(() => {
     fetch('/identity/perfiles', { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : []))
@@ -69,6 +72,21 @@ export function ClienteHomePage() {
   const handleVerPerfil = (id: string) => {
     window.history.pushState({}, '', `/perfil/${id}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const handleCancelAccount = async (justificacion: string) => {
+    setIsLoadingCancel(true);
+    try {
+      await cancelAccount(justificacion);
+      setIsCancelModalOpen(false);
+      alert('Solicitud enviada. Tu cuenta ahora está en revisión y se cerrará la sesión.');
+      await logout();
+      window.location.href = '/';
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
+    } finally {
+      setIsLoadingCancel(false);
+    }
   };
 
   if (loading) {
@@ -273,6 +291,30 @@ export function ClienteHomePage() {
           )}
         </div>
       </section>
+
+      {/* FOOTER */}
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <p>© {new Date().getFullYear()} Cosas de Casa. Todos los derechos reservados.</p>
+          <div className={styles.footerActions}>
+            <button 
+              className={styles.btnDangerGhost}
+              onClick={() => setIsCancelModalOpen(true)}
+            >
+              <Trash2 size={16} />
+              Eliminar mi cuenta
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      {isCancelModalOpen && (
+        <CancelAccountModal 
+          onClose={() => setIsCancelModalOpen(false)}
+          onConfirm={handleCancelAccount}
+          isLoading={isLoadingCancel}
+        />
+      )}
 
     </div>
   );

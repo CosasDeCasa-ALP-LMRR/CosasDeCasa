@@ -42,6 +42,19 @@ enum TipoDocumento {
   PORTAFOLIO
 }
 
+enum SituacionCuenta {
+  ACTIVA
+  PENDIENTE_REVISION
+  ANONIMIZADA
+  RECHAZADA_OCULTA
+}
+
+enum EstadoSolicitudCancelacion {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
 // ---------------------------------------------------------
 // ENTIDADES PRINCIPALES
 // ---------------------------------------------------------
@@ -56,6 +69,7 @@ model Usuario {
   
   // Borrado lógico para Derechos ARCO
   activo           Boolean      @default(true) 
+  situacion_cuenta SituacionCuenta @default(ACTIVA)
   fotoPerfil       String?      // URL de la foto de perfil (para todos los usuarios)
   fechaCreacion    DateTime     @default(now())
   fechaActualizacion DateTime   @updatedAt
@@ -67,7 +81,25 @@ model Usuario {
   auditorias       BitacoraAuditoria[]
   resenasDadas     Resena[]     @relation("ClienteResenas")
   resenasRecibidas Resena[]     @relation("ProfesionalResenas")
+  solicitudesCancelacion SolicitudCancelacion[] @relation("UsuarioSolicitudCancelacion")
+  solicitudesCancelacionAuditor SolicitudCancelacion[] @relation("AuditorSolicitudCancelacion")
   refreshTokens    RefreshToken[]        // RF1/RNF1 - Luis Manuel
+}
+
+model SolicitudCancelacion {
+  id               String       @id @default(uuid())
+  usuarioId        String
+  usuario          Usuario      @relation("UsuarioSolicitudCancelacion", fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  justificacion    String       @db.Text
+  
+  auditorId        String?
+  auditor          Usuario?     @relation("AuditorSolicitudCancelacion", fields: [auditorId], references: [id])
+  
+  estado           EstadoSolicitudCancelacion @default(PENDIENTE)
+  
+  fechaSolicitud   DateTime     @default(now())
+  fechaResolucion  DateTime?
 }
 
 

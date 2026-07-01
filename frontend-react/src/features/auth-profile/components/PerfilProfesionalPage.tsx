@@ -9,12 +9,14 @@ import {
 
 import type { Perfil, UpdatePerfilPayload, DiaHorario, Documento } from '../types/perfil.types';
 import { CATEGORIAS_PRINCIPALES } from '../types/perfil.types';
-import { getMiPerfil, updatePerfil } from '../services/perfil.service';
+import { getMiPerfil, updatePerfil, cancelAccount } from '../services/perfil.service';
+import { logout } from '../services/auth.service';
 import { VerificationBadge } from './VerificationBadge';
 import { EtiquetasEditor } from './EtiquetasEditor';
 import { DisponibilidadEditor } from './DisponibilidadEditor';
 import { PortafolioManager } from './PortafolioManager';
 import { ProfileAvatar } from './ProfileAvatar';
+import { CancelAccountModal } from './CancelAccountModal';
 import { useAuth } from '../../../context/AuthContext';
 import { sanitizeText, sanitizeArrayStrings } from '../../../context/sanitize';
 import styles from './PerfilProfesionalPage.module.css';
@@ -37,6 +39,9 @@ export function PerfilProfesionalPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('informacion');
+  
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false);
 
   const [telefono, setTelefono] = useState('');
   const [biografia, setBiografia] = useState('');
@@ -158,9 +163,23 @@ export function PerfilProfesionalPage() {
     portafolio: 'Portafolio',
   };
 
+  const handleCancelAccount = async (justificacion: string) => {
+    setIsLoadingCancel(true);
+    try {
+      await cancelAccount(justificacion);
+      setIsCancelModalOpen(false);
+      alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
+      await logout();
+      window.location.href = '/';
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
+    } finally {
+      setIsLoadingCancel(false);
+    }
+  };
+
   return (
     <div className={styles.shell}>
-
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <aside className={styles.sidebar}>
 
@@ -237,6 +256,18 @@ export function PerfilProfesionalPage() {
             onClick={() => setAceptaUrgencias(!aceptaUrgencias)}
             aria-label="Acepta urgencias"
           />
+        </div>
+
+        {/* Zona Peligrosa */}
+        <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+          <button
+            type="button"
+            className={styles.btnDangerGhost}
+            onClick={() => setIsCancelModalOpen(true)}
+          >
+            <AlertTriangle size={16} />
+            Eliminar mi cuenta
+          </button>
         </div>
       </aside>
 
@@ -427,6 +458,14 @@ export function PerfilProfesionalPage() {
         )}
 
       </div>
+      
+      {isCancelModalOpen && (
+        <CancelAccountModal 
+          onClose={() => setIsCancelModalOpen(false)}
+          onConfirm={handleCancelAccount}
+          isLoading={isLoadingCancel}
+        />
+      )}
     </div>
   );
 }

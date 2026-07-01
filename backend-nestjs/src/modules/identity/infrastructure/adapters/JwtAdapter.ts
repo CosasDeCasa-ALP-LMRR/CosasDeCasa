@@ -30,15 +30,18 @@ export class JwtAdapter implements IJwtAdapter {
 
   signRefresh(payload: Record<string, unknown>): string {
     return this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET ?? 'refresh-secret-cambiar-en-produccion',
+      secret:
+        process.env.JWT_REFRESH_SECRET ??
+        'refresh-secret-cambiar-en-produccion',
       expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ?? '30d') as any,
     });
   }
 
   verifyRefresh(token: string): JwtPayload {
     return this.jwtService.verify<JwtPayload>(token, {
-      secret: process.env.JWT_REFRESH_SECRET ?? 'refresh-secret-cambiar-en-produccion',
+      secret:
+        process.env.JWT_REFRESH_SECRET ??
+        'refresh-secret-cambiar-en-produccion',
     });
   }
 }
-

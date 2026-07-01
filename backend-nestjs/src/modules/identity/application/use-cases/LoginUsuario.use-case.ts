@@ -68,7 +68,9 @@ export class LoginUsuarioUseCase {
     const rawRefreshToken = randomBytes(64).toString('hex');
 
     // Hashear el refresh token antes de guardarlo en BD
-    const tokenHash = createHash('sha256').update(rawRefreshToken).digest('hex');
+    const tokenHash = createHash('sha256')
+      .update(rawRefreshToken)
+      .digest('hex');
 
     // Calcular expiración: 30 días por defecto
     const expiresAt = new Date();
@@ -85,4 +87,3 @@ export class LoginUsuarioUseCase {
     return { accessToken, refreshToken: rawRefreshToken };
   }
 }
-

@@ -8,7 +8,6 @@ import {
   UserPlus, Loader2, AlertCircle, CheckCircle, ArrowLeft,
 } from 'lucide-react';
 import { register } from '../services/auth.service';
-import { useAuth } from '../../../context/AuthContext';
 import { AvisoPrivacidadPage } from './AvisoPrivacidadPage';
 import styles from './RegisterPage.module.css';
 
@@ -60,8 +59,6 @@ function validate(
 }
 
 export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
-  const { login: loginCtx } = useAuth();
-
   const [rol, setRol] = useState<'PROFESIONAL' | 'CLIENTE'>(defaultRole);
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
