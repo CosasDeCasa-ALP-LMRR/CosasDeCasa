@@ -20,7 +20,7 @@
   gap: 16px;
   padding: 120px 24px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--error-color);
 }
 
 .spinnerBig {
@@ -36,6 +36,11 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.loadingState p {
+  font-size: 1rem;
+  color: #020101;
 }
 
 .retryBtn {
@@ -433,7 +438,7 @@
 
 .alertErr {
   background: hsla(0, 70%, 60%, 0.1);
-  color: #dc2626;
+  color: var(--error-color);
   border: 1px solid hsla(0, 70%, 60%, 0.2);
 }
 
@@ -445,7 +450,103 @@
   gap: 16px;
   flex: 1;
 }
+.requestList {
+  display: grid;
+  gap: 16px;
+}
 
+.requestCard {
+  background: var(--surface-2);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+}
+
+.requestHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.requestMeta {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.requestDescription {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+.requestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.requestActionBtn {
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.requestActionBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.requestActionBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.requestActionBtn:not(.requestRejectBtn) {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.16);
+}
+
+.requestRejectBtn {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.requestBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.requestStatusPENDIENTE {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.requestStatusACEPTADA {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.requestStatusRECHAZADA {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.12);
+}
 /* ── Section cards ──────────────────────────────────────────────────────── */
 .sectionCard {
   background: var(--surface-1);

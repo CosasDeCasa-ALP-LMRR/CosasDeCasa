@@ -106,6 +106,7 @@ import { AuthController } from './presentation/controllers/AuthController';
     GetPerfilUseCase,
     CancelAccountUseCase,
     // Autenticación (RF1/RNF1 - Luis Manuel)
+    IUsuarioRepository,
     IJwtAdapter,
     IRefreshTokenRepository,
   ],

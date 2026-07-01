@@ -10,6 +10,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { ImageCarousel } from './ImageCarousel';
+import { sanitizeText } from '../../../context/sanitize';
+import { createSolicitud } from '../services/solicitud.service';
 import styles from './PerfilProfesionalPublicoPage.module.css';
 
 type PublicProfileEstado = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
@@ -22,6 +24,7 @@ interface DiaHorario {
 
 interface PublicProfile {
   id: string;
+  usuarioId?: string;
   usuario?: {
     nombre?: string;
     correo?: string;
@@ -221,13 +224,26 @@ export function PerfilProfesionalPublicoPage() {
           {/* CTA */}
           <div className={styles.ctaCol}>
             {correoProfesional && (
-              <a
-                href={`mailto:${correoProfesional}?subject=Solicitud de servicio - CosasDeCasa`}
+              <button
+                type="button"
                 className={styles.contactBtn}
+                onClick={async () => {
+                  try {
+                    await createSolicitud({
+                      profesionalId: perfil?.usuarioId ?? profileId ?? '',
+                      descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
+                      esUrgencia: false,
+                    });
+                    window.location.href = `mailto:${correoProfesional}?subject=Solicitud de servicio - CosasDeCasa`;
+                  } catch (err: unknown) {
+                    console.error(err);
+                    alert('No se pudo crear la solicitud. Inicia sesión como cliente y vuelve a intentar.');
+                  }
+                }}
               >
                 <Mail size={15} />
                 Contactar
-              </a>
+              </button>
             )}
             {perfil.aceptaUrgencias && (
               <span className={styles.urgenciaBadge}>
@@ -300,7 +316,7 @@ export function PerfilProfesionalPublicoPage() {
             </div>
             <div className={styles.cardBody}>
               {perfil.biografia ? (
-                <p className={styles.bioText}>{perfil.biografia}</p>
+                <p className={styles.bioText}>{sanitizeText(perfil.biografia)}</p>
               ) : (
                 <p className={styles.bioEmpty}>Este profesional aún no ha escrito una descripción.</p>
               )}

@@ -3,6 +3,7 @@
  */
 import { useState, type KeyboardEvent } from 'react';
 import { X, Plus } from 'lucide-react';
+import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
 import styles from './EtiquetasEditor.module.css';
 
 interface Props {
@@ -13,13 +14,23 @@ interface Props {
 
 export function EtiquetasEditor({ etiquetas, onChange, disabled }: Props) {
   const [inputValue, setInputValue] = useState('');
+  const [inputError, setInputError] = useState<string | null>(null);
 
   const addTag = () => {
-    const tag = inputValue.trim();
-    if (tag && !etiquetas.includes(tag)) {
-      onChange([...etiquetas, tag]);
+    const sanitizedTag = sanitizeText(inputValue.trim(), 50);
+    if (!sanitizedTag) {
+      setInputError('La etiqueta no puede estar vacía.');
+      return;
+    }
+    if (isSuspiciousText(inputValue)) {
+      setInputError('No se permiten etiquetas HTML ni caracteres sospechosos.');
+      return;
+    }
+    if (!etiquetas.includes(sanitizedTag)) {
+      onChange([...etiquetas, sanitizedTag]);
     }
     setInputValue('');
+    setInputError(null);
   };
 
   const removeTag = (tag: string) => {
@@ -58,12 +69,21 @@ export function EtiquetasEditor({ etiquetas, onChange, disabled }: Props) {
           <div className={styles.inputWrapper}>
             <input
               type="text"
-              className={styles.input}
+              className={[styles.input, inputError ? styles.inputError : ''].join(' ')}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (isSuspiciousText(value)) {
+                  setInputError('No se permiten etiquetas HTML ni caracteres sospechosos.');
+                } else {
+                  setInputValue(sanitizeText(value, 50));
+                  setInputError(null);
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder={etiquetas.length === 0 ? 'Agregar subespecialidad...' : ''}
             />
+            {inputError && <p className={styles.fieldError}>{inputError}</p>}
             {inputValue && (
               <button
                 type="button"

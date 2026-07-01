@@ -183,7 +183,7 @@
   gap: 8px;
   padding: 16px;
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--error-color);
   border-radius: 8px;
   margin-bottom: 24px;
   font-weight: 500;

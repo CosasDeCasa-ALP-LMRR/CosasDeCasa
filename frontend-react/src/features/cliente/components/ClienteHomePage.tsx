@@ -4,6 +4,8 @@ import {
   Droplets, Bolt, PaintBucket, Trees, Sparkles, Hammer,
   Trash2
 } from 'lucide-react';
+import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
+import { createSolicitud } from '../../auth-profile/services/solicitud.service';
 import styles from './ClienteHomePage.module.css';
 import { cancelAccount } from '../../auth-profile/services/perfil.service';
 import { CancelAccountModal } from '../../auth-profile/components/CancelAccountModal';
@@ -11,6 +13,7 @@ import { logout } from '../../auth-profile/services/auth.service';
 
 interface Profesional {
   id: string;
+  usuarioId: string;
   usuario: { nombre: string; correo: string; fotoPerfil?: string | null };
   categoriaPrincipal: string;
   etiquetas: string[];
@@ -41,6 +44,7 @@ export function ClienteHomePage() {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [categoriaActiva, setCategoriaActiva] = useState<string | null>(null);
 
   // Estados para Eliminación de Cuenta
@@ -74,14 +78,29 @@ export function ClienteHomePage() {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const handleContact = async (profesionalId: string, correo: string) => {
+    try {
+      await createSolicitud({
+        profesionalId,
+        descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
+        esUrgencia: false,
+      });
+      window.location.href = `mailto:${correo}?subject=Solicitud de servicio - CosasDeCasa`;
+    } catch (err: unknown) {
+      console.error(err);
+      alert('No se pudo crear la solicitud. Asegúrate de estar autenticado como cliente y vuelve a intentar.');
+    }
+  };
+
   const handleCancelAccount = async (justificacion: string) => {
     setIsLoadingCancel(true);
     try {
       await cancelAccount(justificacion);
       setIsCancelModalOpen(false);
-      alert('Solicitud enviada. Tu cuenta ahora está en revisión y se cerrará la sesión.');
+      alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
       await logout();
       window.location.href = '/';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
     } finally {
@@ -126,17 +145,25 @@ export function ClienteHomePage() {
               <Search size={18} className={styles.searchIcon} aria-hidden="true" />
               <input
                 type="text"
-                className={styles.searchInput}
+                className={[styles.searchInput, searchError ? styles.inputError : ''].join(' ')}
                 placeholder="¿Qué necesitas? Ej. plomería, pintura..."
                 value={searchTerm}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
+                  const value = e.target.value;
+                  if (isSuspiciousText(value)) {
+                    setSearchError('No se permiten etiquetas ni caracteres sospechosos en la búsqueda.');
+                    setSearchTerm('');
+                  } else {
+                    setSearchError(null);
+                    setSearchTerm(sanitizeText(value, 100));
+                  }
                   setCategoriaActiva(null);
                 }}
               />
             </div>
-            <button className={styles.searchBtn}>Buscar</button>
+            <button className={styles.searchBtn} disabled={!!searchError}>Buscar</button>
           </div>
+          {searchError && <p className={styles.searchError}>{searchError}</p>}
 
           <div className={styles.heroStats}>
             <div className={styles.hStat}>
@@ -276,15 +303,26 @@ export function ClienteHomePage() {
                   </div>
 
                   {/* CTA */}
-                  <button
-                    className={styles.contactBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVerPerfil(prof.id);
-                    }}
-                  >
-                    Ver perfil
-                  </button>
+                  <div className={styles.cardButtons}>
+                    <button
+                      className={styles.contactBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVerPerfil(prof.id);
+                      }}
+                    >
+                      Ver perfil
+                    </button>
+                    <button
+                      className={styles.contactBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleContact(prof.usuarioId, prof.usuario.correo);
+                      }}
+                    >
+                      Contactar
+                    </button>
+                  </div>
                 </div>
               </article>
             ))
