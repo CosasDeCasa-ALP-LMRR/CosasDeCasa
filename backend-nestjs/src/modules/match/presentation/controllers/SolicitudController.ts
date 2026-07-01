@@ -35,15 +35,14 @@ export class SolicitudController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('CLIENTE')
   async createSolicitud(@Req() req: any, @Body() dto: CreateSolicitudDto) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return await this.createSolicitudUseCase.execute(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       req.user.id,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       dto.profesionalId,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       dto.descripcion ?? '',
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       dto.esUrgencia ?? false,
     );
   }

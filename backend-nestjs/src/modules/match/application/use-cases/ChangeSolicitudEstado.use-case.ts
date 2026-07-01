@@ -23,7 +23,9 @@ export class ChangeSolicitudEstadoUseCase {
   ) {
     const solicitud = await this.solicitudRepository.findById(solicitudId);
     if (!solicitud) {
-      throw new NotFoundException(`Solicitud con ID ${solicitudId} no encontrada`);
+      throw new NotFoundException(
+        `Solicitud con ID ${solicitudId} no encontrada`,
+      );
     }
 
     if (solicitud.profesionalId !== profesionalId) {
@@ -38,6 +40,9 @@ export class ChangeSolicitudEstadoUseCase {
       );
     }
 
-    return await this.solicitudRepository.updateEstado(solicitudId, nuevoEstado);
+    return await this.solicitudRepository.updateEstado(
+      solicitudId,
+      nuevoEstado,
+    );
   }
 }

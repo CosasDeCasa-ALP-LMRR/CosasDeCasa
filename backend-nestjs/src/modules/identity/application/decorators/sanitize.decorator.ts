@@ -23,7 +23,7 @@ function sanitizeValue(value: unknown): unknown {
 
   // eslint-disable-next-line @typescript-eslint/no-base-to-string
   const raw = typeof value === 'string' ? value : String(value);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
   return sanitizeHtml(raw, SANITIZE_OPTIONS).trim();
 }
 

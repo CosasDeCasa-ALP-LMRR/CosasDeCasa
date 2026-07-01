@@ -689,3 +689,29 @@
     padding: 16px;
   }
 }
+
+/* ── Botón Danger (Eliminar Cuenta) ── */
+.btnDangerGhost {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: transparent;
+  color: #ef4444; /* Rojo suave */
+  border: 1.5px solid rgba(239, 68, 68, 0.5); /* Borde rojo semitransparente */
+  border-radius: 10px; /* Combina con tus otros botones */
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btnDangerGhost:hover {
+  background-color: #fef2f2;
+  color: #dc2626; /* Rojo más fuerte */
+  border-color: #dc2626;
+  transform: translateY(-1px);
+}

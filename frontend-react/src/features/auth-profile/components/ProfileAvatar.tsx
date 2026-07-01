@@ -31,6 +31,7 @@ export function ProfileAvatar({ size = 100, editable = false }: Props) {
       await uploadFotoPerfil(file);
       // Refresh AuthContext to get new picture URL
       await login();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || 'Error al subir la imagen');
     } finally {

@@ -20,4 +20,3 @@ import { SolicitudController } from './presentation/controllers/SolicitudControl
   exports: [ISolicitudRepository],
 })
 export class MatchModule {}
-

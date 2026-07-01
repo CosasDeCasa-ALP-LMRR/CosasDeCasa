@@ -4,7 +4,11 @@
  * @date 30/06/2026
  */
 
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ISolicitudRepository } from '../../domain/repositories/ISolicitudRepository';
 import { IUsuarioRepository } from '../../../identity/domain/repositories/IUsuarioRepository';
 
@@ -27,7 +31,9 @@ export class CreateSolicitudUseCase {
     }
 
     if (clienteId === profesionalId) {
-      throw new ForbiddenException('No puedes enviarte una solicitud a ti mismo');
+      throw new ForbiddenException(
+        'No puedes enviarte una solicitud a ti mismo',
+      );
     }
 
     return await this.solicitudRepository.create({

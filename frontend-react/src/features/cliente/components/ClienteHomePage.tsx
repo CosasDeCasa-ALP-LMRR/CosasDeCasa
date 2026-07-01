@@ -1,16 +1,15 @@
-/**
- * @fileoverview Página principal para clientes — Catálogo de profesionales
- * Rediseño: Hero de impacto con color + chips de categoría + grid de cards.
- * Funcionalidad idéntica al original.
- */
 import { useEffect, useState } from 'react';
 import {
   Search, Star, MapPin, Loader2, Zap,
   Droplets, Bolt, PaintBucket, Trees, Sparkles, Hammer,
+  Trash2
 } from 'lucide-react';
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
 import { createSolicitud } from '../../auth-profile/services/solicitud.service';
 import styles from './ClienteHomePage.module.css';
+import { cancelAccount } from '../../auth-profile/services/perfil.service';
+import { CancelAccountModal } from '../../auth-profile/components/CancelAccountModal';
+import { logout } from '../../auth-profile/services/auth.service';
 
 interface Profesional {
   id: string;
@@ -47,6 +46,10 @@ export function ClienteHomePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchError, setSearchError] = useState<string | null>(null);
   const [categoriaActiva, setCategoriaActiva] = useState<string | null>(null);
+
+  // Estados para Eliminación de Cuenta
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false);
 
   useEffect(() => {
     fetch('/identity/perfiles', { credentials: 'include' })
@@ -86,6 +89,22 @@ export function ClienteHomePage() {
     } catch (err: unknown) {
       console.error(err);
       alert('No se pudo crear la solicitud. Asegúrate de estar autenticado como cliente y vuelve a intentar.');
+    }
+  };
+
+  const handleCancelAccount = async (justificacion: string) => {
+    setIsLoadingCancel(true);
+    try {
+      await cancelAccount(justificacion);
+      setIsCancelModalOpen(false);
+      alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
+      await logout();
+      window.location.href = '/';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
+    } finally {
+      setIsLoadingCancel(false);
     }
   };
 
@@ -310,6 +329,30 @@ export function ClienteHomePage() {
           )}
         </div>
       </section>
+
+      {/* FOOTER */}
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <p>© {new Date().getFullYear()} Cosas de Casa. Todos los derechos reservados.</p>
+          <div className={styles.footerActions}>
+            <button 
+              className={styles.btnDangerGhost}
+              onClick={() => setIsCancelModalOpen(true)}
+            >
+              <Trash2 size={16} />
+              Eliminar mi cuenta
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      {isCancelModalOpen && (
+        <CancelAccountModal 
+          onClose={() => setIsCancelModalOpen(false)}
+          onConfirm={handleCancelAccount}
+          isLoading={isLoadingCancel}
+        />
+      )}
 
     </div>
   );
