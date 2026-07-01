@@ -6,9 +6,11 @@
  */
 
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { Sanitize } from '../decorators/sanitize.decorator';
 
 export class LoginDto {
   @IsEmail({}, { message: 'El correo debe ser una dirección válida' })
+  @Sanitize()
   correo: string;
 
   @IsString()

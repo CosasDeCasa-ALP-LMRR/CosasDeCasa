@@ -135,7 +135,8 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, refreshToken } = await this.loginUsuarioUseCase.execute(dto);
+    const { accessToken, refreshToken } =
+      await this.loginUsuarioUseCase.execute(dto);
 
     const cookieOptions = {
       httpOnly: true,
@@ -153,7 +154,7 @@ export class AuthController {
     res.cookie('refresh_token', refreshToken, {
       ...cookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
-      path: '/auth/refresh',             // Solo se envía al endpoint de renovación
+      path: '/auth/refresh', // Solo se envía al endpoint de renovación
     });
 
     return {
@@ -174,14 +175,17 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const rawRefreshToken: string | undefined = (req as any).cookies?.['refresh_token'];
+    const rawRefreshToken: string | undefined = (req as any).cookies?.[
+      'refresh_token'
+    ];
     if (!rawRefreshToken) {
       throw new UnauthorizedException(
         'Refresh token no encontrado. Por favor, inicia sesión.',
       );
     }
 
-    const { accessToken } = await this.refreshTokenUseCase.execute(rawRefreshToken);
+    const { accessToken } =
+      await this.refreshTokenUseCase.execute(rawRefreshToken);
 
     // Emitir el nuevo access token en su cookie
     res.cookie('access_token', accessToken, {
@@ -204,15 +208,17 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     // Revocar el refresh token activo en BD si existe
-    const rawRefreshToken: string | undefined = (req as any).cookies?.['refresh_token'];
+    const rawRefreshToken: string | undefined = (req as any).cookies?.[
+      'refresh_token'
+    ];
     if (rawRefreshToken) {
-      const tokenHash = createHash('sha256').update(rawRefreshToken).digest('hex');
-      const stored = await this.refreshTokenRepository.findByTokenHash(tokenHash);
+      const tokenHash = createHash('sha256')
+        .update(rawRefreshToken)
+        .digest('hex');
+      const stored =
+        await this.refreshTokenRepository.findByTokenHash(tokenHash);
       if (stored) {
         await this.refreshTokenRepository.revokeByUsuarioId(stored.usuarioId);
       }
@@ -225,7 +231,10 @@ export class AuthController {
     };
 
     res.clearCookie('access_token', cookieOptions);
-    res.clearCookie('refresh_token', { ...cookieOptions, path: '/auth/refresh' });
+    res.clearCookie('refresh_token', {
+      ...cookieOptions,
+      path: '/auth/refresh',
+    });
 
     return { message: 'Sesión cerrada exitosamente' };
   }

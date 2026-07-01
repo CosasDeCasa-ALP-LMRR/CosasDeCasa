@@ -35,6 +35,8 @@ import { DeleteDocumentoUseCase } from './application/use-cases/DeleteDocumento.
 import { VerifyPerfilUseCase } from './application/use-cases/VerifyPerfil.use-case';
 import { CancelAccountUseCase } from './application/use-cases/CancelAccount.use-case';
 import { GetPerfilesPendientesUseCase } from './application/use-cases/GetPerfilesPendientes.use-case';
+import { GetCancelacionesPendientesUseCase } from './application/use-cases/GetCancelacionesPendientes.use-case';
+import { ApproveCancelacionUseCase } from './application/use-cases/ApproveCancelacion.use-case';
 import { GetProfesionalesUseCase } from './application/use-cases/GetProfesionales.use-case';
 // --- Controladores de perfil (RF2 - Cesar Gonzalez) ---
 import { PerfilController } from './presentation/controllers/PerfilController';
@@ -79,12 +81,18 @@ import { AuthController } from './presentation/controllers/AuthController';
     VerifyPerfilUseCase,
     CancelAccountUseCase,
     GetPerfilesPendientesUseCase,
+    GetCancelacionesPendientesUseCase,
+    // Perfil (RF4 - Agustin Parra)
+    ApproveCancelacionUseCase,
     GetProfesionalesUseCase,
     // Autenticación (RF1/RNF1 - Luis Manuel)
     { provide: IUsuarioRepository, useClass: PrismaUsuarioRepository },
     { provide: IHashAdapter, useClass: BcryptHashAdapter },
     { provide: IJwtAdapter, useClass: JwtAdapter },
-    { provide: IRefreshTokenRepository, useClass: PrismaRefreshTokenRepository },
+    {
+      provide: IRefreshTokenRepository,
+      useClass: PrismaRefreshTokenRepository,
+    },
     RegisterUsuarioUseCase,
     LoginUsuarioUseCase,
     UpdateFotoPerfilUseCase,
@@ -98,6 +106,7 @@ import { AuthController } from './presentation/controllers/AuthController';
     GetPerfilUseCase,
     CancelAccountUseCase,
     // Autenticación (RF1/RNF1 - Luis Manuel)
+    IUsuarioRepository,
     IJwtAdapter,
     IRefreshTokenRepository,
   ],

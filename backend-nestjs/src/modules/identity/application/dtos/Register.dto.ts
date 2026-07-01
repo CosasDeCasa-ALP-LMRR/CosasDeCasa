@@ -13,6 +13,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
+import { Sanitize } from '../decorators/sanitize.decorator';
 
 export enum RolRegistro {
   CLIENTE = 'CLIENTE',
@@ -22,9 +23,11 @@ export enum RolRegistro {
 export class RegisterDto {
   @IsString()
   @IsNotEmpty({ message: 'El nombre es requerido' })
+  @Sanitize()
   nombre: string;
 
   @IsEmail({}, { message: 'El correo debe ser una dirección válida' })
+  @Sanitize()
   correo: string;
 
   @IsString()

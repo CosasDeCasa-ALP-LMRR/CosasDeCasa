@@ -1,6 +1,8 @@
 /**
  * @fileoverview Panel de Auditor para revisar perfiles pendientes
- * @date 27/06/2026
+ * @author Agustin Parra
+ * @date 30/06/2026
+ * @requirement RF4: Gestión de Derechos ARCO y Eliminación Segura #19
  */
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Eye, Loader2 } from 'lucide-react';
@@ -26,13 +28,21 @@ interface PerfilPendiente {
   fechaActualizacion: string;
 }
 
+interface SolicitudCancelacion {
+  id: string;
+  usuario: Usuario;
+  justificacion: string;
+  fechaSolicitud: string;
+}
+
 export function AuditorDashboardPage() {
   const [perfiles, setPerfiles] = useState<PerfilPendiente[]>([]);
+  const [cancelaciones, setCancelaciones] = useState<SolicitudCancelacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPendientes();
+    Promise.all([fetchPendientes(), fetchCancelaciones()]).finally(() => setLoading(false));
   }, []);
 
   const fetchPendientes = async () => {
@@ -45,8 +55,19 @@ export function AuditorDashboardPage() {
       setPerfiles(data);
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchCancelaciones = async () => {
+    try {
+      const res = await fetch('/identity/perfiles/cancelaciones/pendientes', {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Error al cargar cancelaciones pendientes');
+      const data = await res.json();
+      setCancelaciones(data);
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
@@ -66,6 +87,28 @@ export function AuditorDashboardPage() {
     }
   };
 
+  // Perfil (RF4 - Agustin Parra)
+  const handleAprobarCancelacion = async (solicitudId: string) => {
+    if (!window.confirm('¿Estás seguro de aprobar esta cancelación? Esto anonimizará los datos del usuario de forma irreversible.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/identity/perfiles/cancelaciones/${solicitudId}/aprobar`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      
+      if (!res.ok) throw new Error('Error al aprobar la cancelación');
+      
+      // Remover la tarjeta de la lista una vez aprobada
+      setCancelaciones(prev => prev.filter(c => c.id !== solicitudId));
+      alert('Cuenta anonimizada correctamente (Derechos ARCO completados).');
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   if (loading) return <div className={styles.center}><Loader2 className="spinner" size={32} /></div>;
 
   return (
@@ -78,6 +121,9 @@ export function AuditorDashboardPage() {
       {error && <div className={styles.error}><AlertCircle size={18} /> {error}</div>}
 
       <div className={styles.grid}>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <h2>Perfiles Pendientes de Verificación</h2>
+        </div>
         {perfiles.length === 0 ? (
           <div className={styles.empty}>
             <CheckCircle size={48} strokeWidth={1} />
@@ -122,6 +168,46 @@ export function AuditorDashboardPage() {
                   onClick={() => handleVerificar(perfil.id, 'APROBADO')}
                 >
                   <CheckCircle size={16} /> Aprobar
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+
+        <div style={{ gridColumn: '1 / -1', marginTop: '2rem' }}>
+          <h2>Solicitudes de Cancelación de Cuenta</h2>
+        </div>
+        {cancelaciones.length === 0 ? (
+          <div className={styles.empty}>
+            <CheckCircle size={48} strokeWidth={1} />
+            <p>No hay cancelaciones pendientes</p>
+            <span>Todo está al día.</span>
+          </div>
+        ) : (
+          cancelaciones.map(cancelacion => (
+            <div key={cancelacion.id} className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.avatar} style={{ backgroundColor: '#ff4d4f' }}>
+                  {cancelacion.usuario.nombre.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className={styles.cardTitle}>{cancelacion.usuario.nombre}</h3>
+                  <span className={styles.cardSubtitle}>{cancelacion.usuario.correo}</span>
+                </div>
+              </div>
+
+              <div className={styles.cardBody}>
+                <p><strong>Justificación:</strong></p>
+                <p style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#666' }}>"{cancelacion.justificacion}"</p>
+              </div>
+
+              <div className={styles.cardFooter}>
+                <button
+                  className={styles.approveBtn}
+                  // Perfil (RF4 - Agustin Parra)
+                  onClick={() => handleAprobarCancelacion(cancelacion.id)}
+                >
+                  <CheckCircle size={16} /> Aprobar Cancelación
                 </button>
               </div>
             </div>

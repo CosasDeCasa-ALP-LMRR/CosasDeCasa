@@ -65,3 +65,11 @@ export async function uploadDocumento(
 export async function deleteDocumento(documentoId: string): Promise<void> {
   await api.delete(`/identity/perfiles/documentos/${documentoId}`);
 }
+
+/** DELETE /identity/perfiles/cuenta — solicitar cancelación de cuenta (Derechos ARCO) */
+export async function cancelAccount(justificacion: string): Promise<{ message: string; status: string }> {
+  const { data } = await api.delete<{ message: string; status: string }>('/identity/perfiles/cuenta', {
+    data: { justificacion }
+  });
+  return data;
+}

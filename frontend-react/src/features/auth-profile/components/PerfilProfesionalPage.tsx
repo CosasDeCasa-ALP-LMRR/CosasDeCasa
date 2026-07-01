@@ -2,30 +2,46 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   User, Phone, AlignLeft, Briefcase, Tag, Calendar,
   Folder, AlertTriangle, CheckCircle, Save, Loader2,
-  RotateCcw, MapPin, Camera, ShieldCheck,
-
+  RotateCcw, MapPin, Camera, ShieldCheck, Mail,
   IdCard,
 } from 'lucide-react';
 
 import type { Perfil, UpdatePerfilPayload, DiaHorario, Documento } from '../types/perfil.types';
 import { CATEGORIAS_PRINCIPALES } from '../types/perfil.types';
-import { getMiPerfil, updatePerfil } from '../services/perfil.service';
+import { getMiPerfil, updatePerfil, cancelAccount } from '../services/perfil.service';
+import { getSolicitudesRecibidas, changeSolicitudEstado } from '../services/solicitud.service';
+import { logout } from '../services/auth.service';
 import { VerificationBadge } from './VerificationBadge';
 import { EtiquetasEditor } from './EtiquetasEditor';
 import { DisponibilidadEditor } from './DisponibilidadEditor';
 import { PortafolioManager } from './PortafolioManager';
 import { ProfileAvatar } from './ProfileAvatar';
+import { CancelAccountModal } from './CancelAccountModal';
 import { useAuth } from '../../../context/AuthContext';
-import { sanitizeText, sanitizeArrayStrings } from '../../../context/sanitize';
+import { sanitizeText, sanitizeArrayStrings, isSuspiciousText } from '../../../context/sanitize';
 import styles from './PerfilProfesionalPage.module.css';
 
 
-type TabId = 'informacion' | 'disponibilidad' | 'portafolio';
+type TabId = 'informacion' | 'disponibilidad' | 'portafolio' | 'solicitudes';
+
+interface SolicitudRecibida {
+  id: string;
+  clienteId: string;
+  clienteNombre?: string;
+  clienteCorreo?: string;
+  profesionalId: string;
+  descripcion: string;
+  estado: 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
+  esUrgencia: boolean;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+}
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'informacion', label: 'Información', icon: <User size={16} /> },
   { id: 'disponibilidad', label: 'Disponibilidad', icon: <Calendar size={16} /> },
   { id: 'portafolio', label: 'Portafolio', icon: <Folder size={16} /> },
+  { id: 'solicitudes', label: 'Solicitudes', icon: <Mail size={16} /> },
 ];
 
 export function PerfilProfesionalPage() {
@@ -37,11 +53,24 @@ export function PerfilProfesionalPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('informacion');
+  const [solicitudes, setSolicitudes] = useState<SolicitudRecibida[]>([]);
+  const [solicitudesLoading, setSolicitudesLoading] = useState(false);
+  const [solicitudesLoaded, setSolicitudesLoaded] = useState(false);
+  const [solicitudesError, setSolicitudesError] = useState<string | null>(null);
+  const [solicitudActionLoading, setSolicitudActionLoading] = useState<Record<string, boolean>>({});
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false);
 
   const [telefono, setTelefono] = useState('');
   const [biografia, setBiografia] = useState('');
   const [categoriaPrincipal, setCategoriaPrincipal] = useState('');
   const [etiquetas, setEtiquetas] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{
+    telefono?: string;
+    biografia?: string;
+    categoriaPrincipal?: string;
+    etiquetas?: string;
+  }>({});
   const [aceptaUrgencias, setAceptaUrgencias] = useState(false);
   const [diasYHorarios, setDiasYHorarios] = useState<DiaHorario[]>([]);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
@@ -82,14 +111,53 @@ export function PerfilProfesionalPage() {
     };
   }, [populateForm]);
 
+  useEffect(() => {
+    if (activeTab !== 'solicitudes' || solicitudesLoaded) return;
+    const load = async () => {
+      setSolicitudesError(null);
+      setSolicitudesLoading(true);
+      try {
+        const data = await getSolicitudesRecibidas();
+        setSolicitudes(data);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'No se pudieron cargar las solicitudes';
+        setSolicitudesError(msg);
+      } finally {
+        setSolicitudesLoading(false);
+        setSolicitudesLoaded(true);
+      }
+    };
+    load();
+  }, [activeTab, solicitudesLoaded]);
+
 
   const handleReset = () => {
     if (perfil) populateForm(perfil);
     setSaveError(null);
     setSaveSuccess(false);
+    setFieldErrors({});
+  };
+
+  const handleEstadoSolicitud = async (solicitudId: string, estado: 'ACEPTADA' | 'RECHAZADA') => {
+    setSolicitudesError(null);
+    setSolicitudActionLoading((prev) => ({ ...prev, [solicitudId]: true }));
+    try {
+      const updated = await changeSolicitudEstado(solicitudId, estado);
+      setSolicitudes((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'No se pudo actualizar el estado de la solicitud';
+      setSolicitudesError(msg);
+    } finally {
+      setSolicitudActionLoading((prev) => ({ ...prev, [solicitudId]: false }));
+    }
   };
 
   const handleSave = async () => {
+    if (Object.values(fieldErrors).some(Boolean)) {
+      setSaveError('Corrige los campos con errores antes de guardar.');
+      return;
+    }
+
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
@@ -156,11 +224,27 @@ export function PerfilProfesionalPage() {
     informacion: 'Información profesional',
     disponibilidad: 'Disponibilidad',
     portafolio: 'Portafolio',
+    solicitudes: 'Solicitudes recibidas',
+  };
+
+  const handleCancelAccount = async (justificacion: string) => {
+    setIsLoadingCancel(true);
+    try {
+      await cancelAccount(justificacion);
+      setIsCancelModalOpen(false);
+      alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
+      await logout();
+      window.location.href = '/';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
+    } finally {
+      setIsLoadingCancel(false);
+    }
   };
 
   return (
     <div className={styles.shell}>
-
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <aside className={styles.sidebar}>
 
@@ -238,6 +322,18 @@ export function PerfilProfesionalPage() {
             aria-label="Acepta urgencias"
           />
         </div>
+
+        {/* Zona Peligrosa */}
+        <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+          <button
+            type="button"
+            className={styles.btnDangerGhost}
+            onClick={() => setIsCancelModalOpen(true)}
+          >
+            <AlertTriangle size={16} />
+            Eliminar mi cuenta
+          </button>
+        </div>
       </aside>
 
       {/* ── Main panel ──────────────────────────────────────────────────── */}
@@ -314,11 +410,23 @@ export function PerfilProfesionalPage() {
                     <input
                       id="telefono"
                       type="tel"
-                      className={styles.fieldInput}
+                      className={[styles.fieldInput, fieldErrors.telefono ? styles.fieldInputError : ''].join(' ')}
                       value={telefono}
-                      onChange={(e) => setTelefono(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (isSuspiciousText(value)) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            telefono: 'No se permiten etiquetas ni caracteres sospechosos en el teléfono.',
+                          }));
+                        } else {
+                          setTelefono(sanitizeText(value, 30));
+                          setFieldErrors((prev) => ({ ...prev, telefono: undefined }));
+                        }
+                      }}
                       placeholder="+52 55 1234 5678"
                     />
+                    {fieldErrors.telefono && <p className={styles.fieldError}>{fieldErrors.telefono}</p>}
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.fieldLabel} htmlFor="categoria">
@@ -326,9 +434,20 @@ export function PerfilProfesionalPage() {
                     </label>
                     <select
                       id="categoria"
-                      className={styles.fieldInput}
+                      className={[styles.fieldInput, fieldErrors.categoriaPrincipal ? styles.fieldInputError : ''].join(' ')}
                       value={categoriaPrincipal}
-                      onChange={(e) => setCategoriaPrincipal(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (isSuspiciousText(value)) {
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            categoriaPrincipal: 'Selección inválida detectada.',
+                          }));
+                        } else {
+                          setCategoriaPrincipal(sanitizeText(value, 50));
+                          setFieldErrors((prev) => ({ ...prev, categoriaPrincipal: undefined }));
+                        }
+                      }}
                     >
                       <option value="">— Seleccionar —</option>
                       {CATEGORIAS_PRINCIPALES.map((cat) => (
@@ -353,14 +472,24 @@ export function PerfilProfesionalPage() {
               </div>
               <div className={styles.cardBody}>
                 <textarea
-                  className={styles.fieldInput}
+                  className={[styles.fieldInput, fieldErrors.biografia ? styles.fieldInputError : ''].join(' ')}
                   value={biografia}
                   onChange={(e) => {
-                    if (e.target.value.length <= bioMax) setBiografia(e.target.value);
+                    const value = e.target.value;
+                    if (isSuspiciousText(value)) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        biografia: 'No se permiten etiquetas ni caracteres sospechosos en la biografía.',
+                      }));
+                    } else if (value.length <= bioMax) {
+                      setBiografia(value);
+                      setFieldErrors((prev) => ({ ...prev, biografia: undefined }));
+                    }
                   }}
                   rows={5}
                   placeholder="Describe tu experiencia, especialidades y qué te hace único como profesional..."
                 />
+                {fieldErrors.biografia && <p className={styles.fieldError}>{fieldErrors.biografia}</p>}
               </div>
             </div>
 
@@ -405,6 +534,78 @@ export function PerfilProfesionalPage() {
           </div>
         )}
 
+        {activeTab === 'solicitudes' && (
+          <div className={styles.content}>
+            <div className={styles.sectionCard}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                  <Mail size={15} />
+                  Solicitudes recibidas
+                </div>
+                <span className={styles.cardBadge}>{solicitudes.length} solicitud{solicitudes.length !== 1 ? 'es' : ''}</span>
+              </div>
+              <div className={styles.cardBody}>
+                {solicitudesLoading ? (
+                  <div className={styles.loadingState}>
+                    <Loader2 size={28} className={styles.spinner} />
+                    <p>Cargando solicitudes...</p>
+                  </div>
+                ) : solicitudesError ? (
+                  <div className={styles.errorState}>
+                    <AlertTriangle size={24} />
+                    <p>{solicitudesError}</p>
+                  </div>
+                ) : solicitudes.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p>No tienes solicitudes nuevas por el momento.</p>
+                    <p>Los clientes pueden contactarte desde el catálogo y tu perfil público.</p>
+                  </div>
+                ) : (
+                  <div className={styles.requestList}>
+                    {solicitudes.map((solicitud) => (
+                      <article key={solicitud.id} className={styles.requestCard}>
+                        <div className={styles.requestHeader}>
+                          <div>
+                            <strong>Solicitud #{solicitud.id.slice(0, 8)}</strong>
+                            <p className={styles.requestMeta}>
+                              Cliente: {solicitud.clienteNombre ?? solicitud.clienteCorreo ?? solicitud.clienteId}
+                              {solicitud.esUrgencia && ' · Urgente'}
+                            </p>
+                          </div>
+                          <span className={`${styles.requestBadge} ${styles[`requestStatus${solicitud.estado}`]}`}>
+                            {solicitud.estado}
+                          </span>
+                        </div>
+                        <p className={styles.requestDescription}>
+                          {sanitizeText(solicitud.descripcion || 'Sin descripción adicional')}
+                        </p>
+                        <div className={styles.requestActions}>
+                          <button
+                            type="button"
+                            disabled={solicitud.estado !== 'PENDIENTE' || solicitudActionLoading[solicitud.id]}
+                            className={styles.requestActionBtn}
+                            onClick={() => handleEstadoSolicitud(solicitud.id, 'ACEPTADA')}
+                          >
+                            {solicitudActionLoading[solicitud.id] ? 'Procesando...' : 'Aceptar'}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={solicitud.estado !== 'PENDIENTE' || solicitudActionLoading[solicitud.id]}
+                            className={`${styles.requestActionBtn} ${styles.requestRejectBtn}`}
+                            onClick={() => handleEstadoSolicitud(solicitud.id, 'RECHAZADA')}
+                          >
+                            {solicitudActionLoading[solicitud.id] ? 'Procesando...' : 'Rechazar'}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── Tab: Portafolio ───────────────────────────────────────────── */}
         {activeTab === 'portafolio' && (
           <div className={styles.content}>
@@ -427,6 +628,14 @@ export function PerfilProfesionalPage() {
         )}
 
       </div>
+      
+      {isCancelModalOpen && (
+        <CancelAccountModal 
+          onClose={() => setIsCancelModalOpen(false)}
+          onConfirm={handleCancelAccount}
+          isLoading={isLoadingCancel}
+        />
+      )}
     </div>
   );
 }

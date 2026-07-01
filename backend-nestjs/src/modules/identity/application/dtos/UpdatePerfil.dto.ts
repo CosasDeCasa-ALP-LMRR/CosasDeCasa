@@ -6,23 +6,28 @@
  */
 
 import { IsString, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import { Sanitize } from '../decorators/sanitize.decorator';
 
 export class UpdatePerfilDto {
   @IsOptional()
   @IsString()
+  @Sanitize()
   telefono?: string;
 
   @IsOptional()
   @IsString()
+  @Sanitize()
   biografia?: string;
 
   @IsOptional()
   @IsString()
+  @Sanitize()
   categoriaPrincipal?: string;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Sanitize()
   etiquetas?: string[];
 
   @IsOptional()

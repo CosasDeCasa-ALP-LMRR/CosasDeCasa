@@ -267,6 +267,19 @@
   color: var(--text-muted);
 }
 
+.inputError {
+  border-color: var(--error-color) !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--error-color);
+}
+
 .eyeBtn {
   position: absolute;
   right: 10px;
@@ -406,6 +419,33 @@
 
 .privacyNoticeText a:hover {
   color: var(--accent-hover);
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 500;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.linkBtn:hover {
+  color: var(--accent-hover);
+}
+
+.avisoOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-color);
+  z-index: 9999;
+  overflow-y: auto;
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */

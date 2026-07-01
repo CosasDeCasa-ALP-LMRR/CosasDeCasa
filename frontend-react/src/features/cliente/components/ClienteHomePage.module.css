@@ -214,6 +214,17 @@
   gap: 10px;
 }
 
+.inputError {
+  border: 1px solid var(--error-color);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+}
+
+.searchError {
+  margin-top: 8px;
+  color: var(--error-color);
+  font-size: 0.875rem;
+}
+
 .catChip {
   background: var(--surface-1);
   border: 1px solid var(--border-color);
@@ -394,6 +405,13 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
+.cardButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .card:hover .contactBtn {
   background: var(--accent);
   border-color: var(--accent);
@@ -451,4 +469,34 @@
     flex-wrap: wrap;
     gap: 14px;
   }
+}
+
+/* ── Botones del Footer ── */
+.footerActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.btnDangerGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btnDangerGhost:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #dc2626;
 }

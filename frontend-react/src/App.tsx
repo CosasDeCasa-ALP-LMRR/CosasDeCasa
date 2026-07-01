@@ -15,6 +15,7 @@ import { ClienteHomePage } from './features/cliente/components/ClienteHomePage';
 import { ProfileAvatar } from './features/auth-profile/components/ProfileAvatar';
 import { PerfilProfesionalPublicoPage } from './features/auth-profile/components/PerfilProfesionalPublicoPage';
 import { AvisoPrivacidadPage } from './features/auth-profile/components/AvisoPrivacidadPage';
+import { AvisoPrivacidadSimplificadoPage } from './features/auth-profile/components/AvisoPrivacidadSimplificadoPage';
 import './App.css';
 
 // ─── Auth screen (Landing) ───────────────────────────────────────────────
@@ -121,6 +122,17 @@ function AppRouter() {
   if (path === '/aviso-privacidad') {
     return (
       <AvisoPrivacidadPage
+        onBack={() => {
+          window.history.pushState({}, '', '/');
+          setPath('/');
+        }}
+      />
+    );
+  }
+
+  if (path === '/aviso-privacidad-simplificado') {
+    return (
+      <AvisoPrivacidadSimplificadoPage
         onBack={() => {
           window.history.pushState({}, '', '/');
           setPath('/');
