@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    headers: {
+      'X-Frame-Options': 'DENY',
+      'Content-Security-Policy': "frame-ancestors 'none'",
+    },
     proxy: {
       // Proxy /identity, /auth, /match and /uploads routes to NestJS backend
       '/identity': {

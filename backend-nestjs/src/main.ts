@@ -15,8 +15,14 @@ import { join } from 'path';
 
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
+import helmet from 'helmet';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Seguridad: Prevenir Clickjacking, Inyección, etc.
+  app.use(helmet());
+  
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   app.useGlobalPipes(
