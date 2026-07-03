@@ -44,7 +44,7 @@ export function formatApiError(error: any): string {
       return 'Este correo electrónico ya está registrado. Por favor intenta iniciar sesión o usa otro correo.';
       
     case 429:
-      return 'Has hecho demasiados intentos. Por favor espera un momento e intenta de nuevo.';
+      return 'Por motivos de seguridad, hemos pausado tus peticiones debido a demasiados intentos. Por favor, espera un minuto antes de volver a intentarlo.';
       
     case 500:
     case 502:
