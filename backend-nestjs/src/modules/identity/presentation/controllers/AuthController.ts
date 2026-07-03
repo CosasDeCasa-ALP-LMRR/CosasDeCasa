@@ -15,6 +15,14 @@
  *          Se actualizó el logout para revocar el refresh token activo en BD
  *          y borrar ambas cookies.
  */
+/**
+ * @modified 03/07/2026
+ * @author Luis Manuel
+ * @requirement RF: Prevención de Fuga de Datos (Excessive Data Exposure — OWASP)
+ * @changes Se eliminaron accessToken y refreshToken del cuerpo JSON de /auth/login y /auth/refresh.
+ *          Los tokens YA viajan en cookies HttpOnly. Exponerlos también en el body
+ *          los hace accesibles desde JavaScript, contradiciendo el modelo de seguridad.
+ */
 
 import {
   Body,
@@ -159,8 +167,9 @@ export class AuthController {
 
     return {
       message: 'Inicio de sesión exitoso',
-      accessToken,
-      refreshToken,
+      // accessToken y refreshToken NO se incluyen en el body:
+      // ya viajan en cookies HttpOnly (ver res.cookie arriba).
+      // Exponerlos aquí los haría accesibles desde JavaScript (XSS risk).
     };
   }
 
@@ -197,7 +206,7 @@ export class AuthController {
 
     return {
       message: 'Token renovado exitosamente',
-      accessToken,
+      // accessToken NO se incluye en el body: ya viaja en cookie HttpOnly.
     };
   }
 

@@ -7,20 +7,11 @@ import {
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
 import { createSolicitud } from '../../auth-profile/services/solicitud.service';
 import styles from './ClienteHomePage.module.css';
-import { cancelAccount } from '../../auth-profile/services/perfil.service';
+import { cancelAccount, getProfesionales } from '../../auth-profile/services/perfil.service';
 import { CancelAccountModal } from '../../auth-profile/components/CancelAccountModal';
 import { logout } from '../../auth-profile/services/auth.service';
+import type { ProfesionalCard } from '../../auth-profile/types/perfil.types';
 
-interface Profesional {
-  id: string;
-  usuarioId: string;
-  usuario: { nombre: string; correo: string; fotoPerfil?: string | null };
-  categoriaPrincipal: string;
-  etiquetas: string[];
-  promedioCalificacion: number;
-  municipio: string;
-  estadoRep: string;
-}
 
 const CATEGORIAS = [
   { label: 'Plomería', icon: <Droplets size={20} /> },
@@ -41,7 +32,7 @@ function getInitials(nombre: string) {
 }
 
 export function ClienteHomePage() {
-  const [profesionales, setProfesionales] = useState<Profesional[]>([]);
+  const [profesionales, setProfesionales] = useState<ProfesionalCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -52,8 +43,7 @@ export function ClienteHomePage() {
   const [isLoadingCancel, setIsLoadingCancel] = useState(false);
 
   useEffect(() => {
-    fetch('/identity/perfiles', { credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : []))
+    getProfesionales()
       .then(setProfesionales)
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -62,7 +52,7 @@ export function ClienteHomePage() {
   const filtrados = profesionales.filter((p) => {
     const termMatch =
       !searchTerm ||
-      p.usuario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.categoriaPrincipal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.etiquetas.some((e) => e.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -78,14 +68,14 @@ export function ClienteHomePage() {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const handleContact = async (profesionalId: string, correo: string) => {
+  const handleContact = async (perfilId: string) => {
     try {
       await createSolicitud({
-        profesionalId,
+        profesionalId: perfilId,
         descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
         esUrgencia: false,
       });
-      window.location.href = `mailto:${correo}?subject=Solicitud de servicio - CosasDeCasa`;
+      alert('Solicitud enviada correctamente.');
     } catch (err: unknown) {
       console.error(err);
       alert('No se pudo crear la solicitud. Asegúrate de estar autenticado como cliente y vuelve a intentar.');
@@ -258,18 +248,18 @@ export function ClienteHomePage() {
                   {/* Header */}
                   <div className={styles.cardTop}>
                     <div className={styles.avatar}>
-                      {prof.usuario.fotoPerfil ? (
+                      {prof.fotoPerfil ? (
                         <img
-                          src={prof.usuario.fotoPerfil}
-                          alt={prof.usuario.nombre}
+                          src={prof.fotoPerfil}
+                          alt={prof.nombre}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
-                        getInitials(prof.usuario.nombre)
+                        getInitials(prof.nombre)
                       )}
                     </div>
                     <div>
-                      <h3 className={styles.cardTitle}>{prof.usuario.nombre}</h3>
+                      <h3 className={styles.cardTitle}>{prof.nombre}</h3>
                       <p className={styles.cardCategory}>
                         {prof.categoriaPrincipal || 'Servicios generales'}
                       </p>
@@ -317,7 +307,7 @@ export function ClienteHomePage() {
                       className={styles.contactBtn}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleContact(prof.usuarioId, prof.usuario.correo);
+                        handleContact(prof.id);
                       }}
                     >
                       Contactar
