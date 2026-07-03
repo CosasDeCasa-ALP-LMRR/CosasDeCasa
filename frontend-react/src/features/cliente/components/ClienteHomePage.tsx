@@ -90,7 +90,7 @@ export function ClienteHomePage() {
       alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
       await logout();
       window.location.href = '/';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
     } finally {
@@ -249,11 +249,18 @@ export function ClienteHomePage() {
                   <div className={styles.cardTop}>
                     <div className={styles.avatar}>
                       {prof.fotoPerfil ? (
-                        <img
-                          src={prof.fotoPerfil}
-                          alt={prof.nombre}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
+                        <>
+                          <img
+                            src={prof.fotoPerfil}
+                            alt={prof.nombre}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => {
+                              // Hide broken image and fallback to initials
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.parentElement!.innerText = getInitials(prof.nombre);
+                            }}
+                          />
+                        </>
                       ) : (
                         getInitials(prof.nombre)
                       )}
@@ -320,24 +327,40 @@ export function ClienteHomePage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <p>© {new Date().getFullYear()} Cosas de Casa. Todos los derechos reservados.</p>
-          <div className={styles.footerActions}>
-            <button 
-              className={styles.btnDangerGhost}
-              onClick={() => setIsCancelModalOpen(true)}
-            >
-              <Trash2 size={16} />
-              Eliminar mi cuenta
-            </button>
+      <footer className={styles.footerContainer}>
+        <div className={styles.footerContent}>
+          <div className={styles.footerBrand}>
+            <h3>Cosas <span>de</span> Casa</h3>
+            <p>Conectamos profesionales verificados con quienes los necesitan de forma rápida, segura y sin complicaciones.</p>
           </div>
+          <div className={styles.footerLinks}>
+            <div className={styles.footerColumn}>
+              <h4>Soporte</h4>
+            </div>
+            <div className={styles.footerColumn}>
+              <h4>Plataforma</h4>
+            </div>
+            <div className={styles.footerColumn}>
+              <h4>Seguridad</h4>
+              <button
+                className={styles.btnDangerGhost}
+                onClick={() => setIsCancelModalOpen(true)}
+                style={{ padding: '8px 12px', justifyContent: 'flex-start', marginTop: '4px' }}
+              >
+                <Trash2 size={16} />
+                Eliminar mi cuenta
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className={styles.footerBottom}>
+          <p>© {new Date().getFullYear()} Cosas de Casa. Todos los derechos reservados.</p>
+          <p>Hecho con ❤️ para tu hogar</p>
         </div>
       </footer>
 
       {isCancelModalOpen && (
-        <CancelAccountModal 
+        <CancelAccountModal
           onClose={() => setIsCancelModalOpen(false)}
           onConfirm={handleCancelAccount}
           isLoading={isLoadingCancel}

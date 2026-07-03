@@ -9,8 +9,18 @@ interface Props {
   editable?: boolean;
 }
 
+function getInitials(nombre: string | null) {
+  if (!nombre) return 'U';
+  return nombre
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+}
+
 export function ProfileAvatar({ size = 100, editable = false }: Props) {
-  const { fotoPerfil, login } = useAuth(); // login refreshes session
+  const { fotoPerfil, nombre, login } = useAuth(); // login refreshes session
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,15 +59,31 @@ export function ProfileAvatar({ size = 100, editable = false }: Props) {
         style={{ width: size, height: size }}
       >
         {fotoPerfil ? (
-          <img
-            src={fotoPerfil}
-            alt="Foto de perfil"
-            className={styles.avatarImage}
-            style={{ width: size, height: size }}
-          />
+          <>
+            <img
+              src={fotoPerfil}
+              alt="Foto de perfil"
+              className={styles.avatarImage}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                fallback.style.display = 'flex';
+              }}
+            />
+            <div 
+              className={styles.avatarFallback} 
+              style={{ display: 'none', width: '100%', height: '100%', fontSize: size * 0.4, fontWeight: 'bold' }}
+            >
+              {getInitials(nombre)}
+            </div>
+          </>
         ) : (
-          <div className={styles.avatarFallback} style={{ width: size, height: size }}>
-            <User size={size * 0.5} strokeWidth={1.5} />
+          <div 
+            className={styles.avatarFallback} 
+            style={{ width: '100%', height: '100%', fontSize: size * 0.4, fontWeight: 'bold' }}
+          >
+            {getInitials(nombre)}
           </div>
         )}
 
