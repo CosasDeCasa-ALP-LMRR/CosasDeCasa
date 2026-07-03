@@ -38,6 +38,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
+import { Throttle } from '@nestjs/throttler'; // RNF3 (Agustin Parra)
 import { RegisterDto } from '../../application/dtos/Register.dto';
 import { LoginDto } from '../../application/dtos/Login.dto';
 import { RegisterUsuarioUseCase } from '../../application/use-cases/RegisterUsuario.use-case';
@@ -54,6 +55,7 @@ import {
   UseInterceptors,
   BadRequestException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler'; // RNF3 (Agustin Parra)
 
 @Controller('auth')
 export class AuthController {
@@ -65,7 +67,7 @@ export class AuthController {
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     @Inject(IRefreshTokenRepository)
     private readonly refreshTokenRepository: IRefreshTokenRepository,
-  ) {}
+  ) { }
 
   /**
    * Obtiene la información del usuario autenticado basado en su JWT.
@@ -137,7 +139,9 @@ export class AuthController {
    * El token NO se devuelve en el cuerpo de la respuesta.
    * POST /auth/login
    */
+  // RNF3 (Agustin Parra) — Protección contra fuerza bruta: 5 intentos por minuto por IP
   @Post('login')
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: LoginDto,
