@@ -30,7 +30,10 @@ import {
   UploadedFile,
   Req,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -52,6 +55,7 @@ import { GetProfesionalesUseCase } from '../../application/use-cases/GetProfesio
 @Controller('identity/perfiles')
 export class PerfilController {
   constructor(
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly getPerfilUseCase: GetPerfilUseCase,
     private readonly updatePerfilUseCase: UpdatePerfilUseCase,
     private readonly addDocumentoUseCase: AddDocumentoUseCase,
@@ -90,7 +94,14 @@ export class PerfilController {
   @Patch('cancelaciones/:id/aprobar')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUDITOR')
-  async aprobarCancelacion(@Param('id') id: string) {
+  async aprobarCancelacion(@Req() req: any, @Param('id') id: string) {
+    const auditorId = req.user.id;
+    this.logger.info(`Auditor ${auditorId} approved cancellation for profile ${id}`, {
+      context: 'Auditor',
+      autorId: auditorId,
+      accion: 'APPROVE_CANCELLATION',
+      afectadoId: id,
+    });
     await this.approveCancelacionUseCase.execute(id);
     return {
       message: 'Cancelación aprobada y cuenta anonimizada correctamente',
@@ -159,7 +170,18 @@ export class PerfilController {
   @Patch(':id/verificacion')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUDITOR')
-  async verifyPerfil(@Param('id') id: string, @Body() dto: VerifyPerfilDto) {
+  async verifyPerfil(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: VerifyPerfilDto,
+  ) {
+    const auditorId = req.user.id;
+    this.logger.info(`Auditor ${auditorId} set verification status to ${dto.estado} for profile ${id}`, {
+      context: 'Auditor',
+      autorId: auditorId,
+      accion: `VERIFY_PROFILE_${dto.estado}`,
+      afectadoId: id,
+    });
     return await this.verifyPerfilUseCase.execute(id, dto.estado);
   }
 

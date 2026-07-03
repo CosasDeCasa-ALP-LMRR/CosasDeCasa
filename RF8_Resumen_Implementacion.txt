@@ -1,0 +1,41 @@
+========================================================================
+RESUMEN DE IMPLEMENTACIÓN
+REQUERIMIENTO: RF8 - Trazabilidad y Logs de Auditoría Confidenciales
+========================================================================
+
+1. OBJETIVO DEL REQUERIMIENTO
+Cumplir con la normativa de auditoría manteniendo un registro persistente de quién, cuándo y para qué se accedió o modificó información de los perfiles de usuarios (desde el panel de Auditores), garantizando la completa anonimización de datos sensibles (PII).
+
+2. DEPENDENCIAS INSTALADAS (en backend-nestjs)
+- winston: Motor principal de logging.
+- nest-winston: Integración de Winston nativa para NestJS.
+- winston-daily-rotate-file: Plugin para rotación de logs (crear un archivo nuevo diario y borrar los antiguos).
+
+3. ARCHIVOS CREADOS
+- `backend-nestjs/src/logger/winston.config.ts`: 
+  Contiene la configuración centralizada de los logs. 
+  Aquí se programó el formateador especial `sanitizeFormat` que recorre el contenido de cada log y reemplaza con "[CENSORED]" cualquier valor que pertenezca a llaves confidenciales (password, email, correo, curp, token). 
+  Se configuraron dos canales de salida (transports):
+    a) Consola (para desarrollo).
+    b) DailyRotateFile (Persistencia en archivo). Los logs se guardan en `logs/audit-%DATE%.log`, con un límite de tamaño de 20MB por archivo y retención máxima de 14 días.
+
+4. ARCHIVOS MODIFICADOS
+
+- `backend-nestjs/src/app.module.ts`:
+  Se importó `WinstonModule.forRoot(winstonConfig)` para que el módulo global de la aplicación cuente con la configuración de Winston.
+
+- `backend-nestjs/src/main.ts`:
+  Se sobreescribió el sistema de logs por defecto del framework con `app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));`. Esto garantiza que los fallos críticos y advertencias del sistema también pasen por el filtro de censura de Winston.
+
+- `backend-nestjs/src/modules/identity/presentation/controllers/PerfilController.ts`:
+  Se implementó la trazabilidad de las acciones manuales del Auditor.
+  1. Se inyectó el Logger de Winston en el constructor (`@Inject(WINSTON_MODULE_PROVIDER)`).
+  2. En los métodos `aprobarCancelacion` y `verifyPerfil` se agregó la lectura del Request (`@Req()`) para identificar al auditor ejecutante.
+  3. Se añadieron los llamados a `this.logger.info(...)` para generar el log exacto en el momento de la manipulación, mandando los siguientes datos estandarizados:
+     - autorId: ID de quien ejecutó la acción (Auditor).
+     - accion: Tipo de modificación (ej. VERIFY_PROFILE_APROBADO, APPROVE_CANCELLATION).
+     - afectadoId: ID del usuario/perfil que recibió la modificación.
+     - context: 'Auditor' para filtrar fácilmente en búsquedas.
+
+5. RESULTADO DE LA VALIDACIÓN
+La bitácora se genera de manera automática dentro de la carpeta `backend-nestjs/logs/`, asegurando transparencia de auditoría interna pero evitando completamente la fuga de datos personales en el entorno de logs.

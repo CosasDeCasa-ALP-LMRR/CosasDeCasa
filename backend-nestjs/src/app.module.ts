@@ -9,11 +9,14 @@ import { IdentityModule } from './modules/identity/identity.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { MatchModule } from './modules/match/match.module';
 import { SearchReviewModule } from './modules/search-review/search-review.module';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './logger/winston.config';
 
 @Module({
   imports: [
     //RNF3
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    WinstonModule.forRoot(winstonConfig),
     EventEmitterModule.forRoot(),
     PrismaModule,
     IdentityModule,
