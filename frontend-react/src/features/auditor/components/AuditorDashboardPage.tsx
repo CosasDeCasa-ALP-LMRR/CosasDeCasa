@@ -22,10 +22,14 @@ interface Documento {
 
 interface PerfilPendiente {
   id: string;
-  usuario: Usuario;
+  nombre: string;
+  correo: string;
+  fotoPerfil: string | null;
+  biografia: string;
   categoriaPrincipal: string;
+  etiquetas: string[];
+  estadoVerificacion: string;
   documentos: Documento[];
-  fechaActualizacion: string;
 }
 
 interface SolicitudCancelacion {
@@ -135,11 +139,11 @@ export function AuditorDashboardPage() {
             <div key={perfil.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.avatar}>
-                  {perfil.usuario.nombre.charAt(0).toUpperCase()}
+                  {perfil.nombre?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className={styles.cardTitle}>{perfil.usuario.nombre}</h3>
-                  <span className={styles.cardSubtitle}>{perfil.usuario.correo}</span>
+                  <h3 className={styles.cardTitle}>{perfil.nombre}</h3>
+                  <span className={styles.cardSubtitle}>{perfil.correo}</span>
                 </div>
               </div>
 
