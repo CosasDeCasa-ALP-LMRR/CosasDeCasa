@@ -6,7 +6,7 @@ import {
   IdCard,
 } from 'lucide-react';
 
-import type { Perfil, UpdatePerfilPayload, DiaHorario, Documento } from '../types/perfil.types';
+import type { UpdatePerfilPayload, DiaHorario, DocumentoPublico, MiPerfil } from '../types/perfil.types';
 import { CATEGORIAS_PRINCIPALES } from '../types/perfil.types';
 import { getMiPerfil, updatePerfil, cancelAccount } from '../services/perfil.service';
 import { getSolicitudesRecibidas, changeSolicitudEstado } from '../services/solicitud.service';
@@ -46,7 +46,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
 
 export function PerfilProfesionalPage() {
   const { nombre } = useAuth();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<MiPerfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -73,9 +73,9 @@ export function PerfilProfesionalPage() {
   }>({});
   const [aceptaUrgencias, setAceptaUrgencias] = useState(false);
   const [diasYHorarios, setDiasYHorarios] = useState<DiaHorario[]>([]);
-  const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [documentos, setDocumentos] = useState<DocumentoPublico[]>([]);
 
-  const populateForm = useCallback((p: Perfil) => {
+  const populateForm = useCallback((p: MiPerfil) => {
     setTelefono(sanitizeText(p.telefono ?? ''));
     setBiografia(sanitizeText(p.biografia ?? ''));
     setCategoriaPrincipal(sanitizeText(p.categoriaPrincipal ?? ''));

@@ -10,15 +10,15 @@ import {
   ExternalLink,
   Loader2,
 } from 'lucide-react';
-import type { Documento } from '../types/perfil.types';
+import type { DocumentoPublico } from '../types/perfil.types';
 import { TIPOS_DOCUMENTO } from '../types/perfil.types';
 import { uploadDocumento, deleteDocumento } from '../services/perfil.service';
 import { ImageCarousel } from './ImageCarousel';
 import styles from './PortafolioManager.module.css';
 
 interface Props {
-  documentos: Documento[];
-  onUpdate: (docs: Documento[]) => void;
+  documentos: DocumentoPublico[];
+  onUpdate: (docs: DocumentoPublico[]) => void;
 }
 
 function getFileIcon(urlArchivo: string) {
@@ -50,9 +50,8 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
     setError(null);
     try {
       const result = await uploadDocumento(file, selectedTipo, consentimientoIA);
-      const newDoc: Documento = {
+      const newDoc: DocumentoPublico = {
         id: result.id,
-        perfilId: '',
         tipo: result.tipo,
         urlArchivo: result.urlArchivo,
         fechaSubida: new Date().toISOString(),
@@ -66,7 +65,7 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
     }
   };
 
-  const handleDelete = async (doc: Documento) => {
+  const handleDelete = async (doc: DocumentoPublico) => {
     setDeletingId(doc.id);
     setError(null);
     try {
@@ -79,7 +78,8 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
     }
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '';
     try {
       return new Date(dateStr).toLocaleDateString('es-MX', {
         day: '2-digit',
