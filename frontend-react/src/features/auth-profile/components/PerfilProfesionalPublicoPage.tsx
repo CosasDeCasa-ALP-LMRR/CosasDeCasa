@@ -12,43 +12,11 @@ import {
 import { ImageCarousel } from './ImageCarousel';
 import { sanitizeText } from '../../../context/sanitize';
 import { createSolicitud } from '../services/solicitud.service';
+import { getPerfilPublico } from '../services/perfil.service';
 import styles from './PerfilProfesionalPublicoPage.module.css';
+import type { PerfilPublico } from '../types/perfil.types';
 
-type PublicProfileEstado = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
-
-interface DiaHorario {
-  dia: string;
-  horaInicio: string;
-  horaFin: string;
-}
-
-interface PublicProfile {
-  id: string;
-  usuarioId?: string;
-  usuario?: {
-    nombre?: string;
-    correo?: string;
-    fotoPerfil?: string | null;
-  };
-  nombre?: string;
-  correo?: string;
-  fotoPerfil?: string | null;
-  foto?: string | null;
-  foto_url?: string | null;
-  urlFotoPerfil?: string | null;
-  telefono: string;
-  biografia: string;
-  categoriaPrincipal: string;
-  etiquetas: string[];
-  codigoPostal: string | null;
-  municipio: string | null;
-  estadoRep: string | null;
-  aceptaUrgencias: boolean;
-  estadoVerificacion: PublicProfileEstado;
-  promedioCalificacion: number;
-  diasYHorarios: DiaHorario[] | null;
-  documentos: Array<{ id: string; tipo: string; urlArchivo: string }>;
-}
+// PerfilPublico type is imported from perfil.types.ts — matches PerfilPublicoResponseDto from backend
 
 function getProfileId(): string | null {
   const match = window.location.pathname.match(/^\/perfil\/(.+)/);
@@ -75,25 +43,10 @@ function initials(nombre: string): string {
     .toUpperCase();
 }
 
-/** Pill de verificación con color semántico */
-function VerifPill({ estado }: { estado: PublicProfileEstado }) {
-  const map: Record<PublicProfileEstado, { cls: string; label: string }> = {
-    APROBADO: { cls: styles.verifAprobado, label: 'Verificado' },
-    PENDIENTE: { cls: styles.verifPendiente, label: 'En revisión' },
-    RECHAZADO: { cls: styles.verifRechazado, label: 'No verificado' },
-  };
-  const { cls, label } = map[estado] ?? map.PENDIENTE;
-  return (
-    <span className={`${styles.verifPill} ${cls}`}>
-      <ShieldCheck size={13} />
-      {label}
-    </span>
-  );
-}
 
 export function PerfilProfesionalPublicoPage() {
   const profileId = getProfileId();
-  const [perfil, setPerfil] = useState<PublicProfile | null>(null);
+  const [perfil, setPerfil] = useState<PerfilPublico | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,9 +54,8 @@ export function PerfilProfesionalPublicoPage() {
     if (!profileId) return;
     const fetchPerfil = async () => {
       try {
-        const res = await fetch(`/identity/perfiles/${profileId}`, { credentials: 'include' });
-        if (!res.ok) throw new Error('No se pudo cargar el perfil del profesional');
-        setPerfil(await res.json());
+        const data = await getPerfilPublico(profileId);
+        setPerfil(data);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {
@@ -134,13 +86,12 @@ export function PerfilProfesionalPublicoPage() {
     );
   }
 
-  /* ── Derived data ── */
-  const fotoPerfil =
-    perfil.usuario?.fotoPerfil ?? perfil.fotoPerfil ?? perfil.foto ?? perfil.foto_url ?? perfil.urlFotoPerfil;
-  const nombreProfesional = perfil.usuario?.nombre ?? perfil.nombre ?? 'Profesional';
-  const correoProfesional = perfil.usuario?.correo ?? perfil.correo ?? '';
+  /* ── Derived data — new DTO shape: nombre/fotoPerfil are top-level ── */
+  const fotoPerfil = perfil.fotoPerfil;
+  const nombreProfesional = perfil.nombre ?? 'Profesional';
+  // correo no se expone en vista pública (PerfilPublicoResponseDto no lo incluye)
 
-  const portfolioDocs = (perfil.documentos ?? []).filter((d) => d.tipo === 'PORTAFOLIO');
+  const portfolioDocs = (perfil.portafolio ?? []);
   const portfolioImgs = portfolioDocs.map((d) => d.urlArchivo).filter((u) =>
     ['jpg', 'jpeg', 'png', 'gif', 'webp'].some((ext) => u.toLowerCase().endsWith(ext))
   );
@@ -206,45 +157,31 @@ export function PerfilProfesionalPublicoPage() {
                   {perfil.municipio}{perfil.estadoRep ? `, ${perfil.estadoRep}` : ''}
                 </span>
               )}
-              {perfil.telefono && (
-                <span className={styles.metaItem}>
-                  <Phone size={13} />
-                  {perfil.telefono}
-                </span>
-              )}
-              {correoProfesional && (
-                <span className={styles.metaItem}>
-                  <Mail size={13} />
-                  {correoProfesional}
-                </span>
-              )}
             </div>
           </div>
 
           {/* CTA */}
           <div className={styles.ctaCol}>
-            {correoProfesional && (
-              <button
-                type="button"
-                className={styles.contactBtn}
-                onClick={async () => {
-                  try {
-                    await createSolicitud({
-                      profesionalId: perfil?.usuarioId ?? profileId ?? '',
-                      descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
-                      esUrgencia: false,
-                    });
-                    window.location.href = `mailto:${correoProfesional}?subject=Solicitud de servicio - CosasDeCasa`;
-                  } catch (err: unknown) {
-                    console.error(err);
-                    alert('No se pudo crear la solicitud. Inicia sesión como cliente y vuelve a intentar.');
-                  }
-                }}
-              >
-                <Mail size={15} />
-                Contactar
-              </button>
-            )}
+            <button
+              type="button"
+              className={styles.contactBtn}
+              onClick={async () => {
+                try {
+                  await createSolicitud({
+                    profesionalId: perfil.id,
+                    descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
+                    esUrgencia: false,
+                  });
+                  alert('Solicitud enviada correctamente.');
+                } catch (err: unknown) {
+                  console.error(err);
+                  alert('No se pudo crear la solicitud. Inicia sesión como cliente y vuelve a intentar.');
+                }
+              }}
+            >
+              <Mail size={15} />
+              Contactar
+            </button>
             {perfil.aceptaUrgencias && (
               <span className={styles.urgenciaBadge}>
                 <Zap size={11} fill="currentColor" />
@@ -264,11 +201,6 @@ export function PerfilProfesionalPublicoPage() {
         {/* ── SIDEBAR ── */}
         <aside className={styles.sidebar}>
 
-          {/* Verificación */}
-          <div className={styles.sidebarSection}>
-            <p className={styles.sidebarLabel}>Verificación</p>
-            <VerifPill estado={perfil.estadoVerificacion} />
-          </div>
 
           {/* Disponibilidad */}
           <div className={styles.sidebarSection}>

@@ -2,8 +2,6 @@
  * @fileoverview API service for RF2 - Professional Profile endpoints
  * @author Frontend RF2
  * @date 27/06/2026
- */
-/**
  * @modified 28/06/2026
  * @author Luis Manuel
  * @requirement RF12: Interfaz de Autenticación y Enrutamiento por Roles
@@ -11,33 +9,51 @@
  * @changes Se migró de fetch manual a la instancia global de Axios (src/lib/axios.ts)
  *          para garantizar withCredentials: true en todas las peticiones y
  *          aprovechar el interceptor de renovación automática de tokens.
+ * @modified 03/07/2026
+ * @author Luis Manuel
+ * @requirement RF: Prevención de Fuga de Datos (Excessive Data Exposure — OWASP)
+ * @changes Se actualizaron los tipos de retorno para usar los nuevos DTOs tipados:
+ *   - getProfesionales: ahora retorna ProfesionalCard[] (solo campos públicos de tarjeta).
+ *   - getPerfilPublico: ahora retorna PerfilPublico (solo portafolio, sin INE/CEDULA).
+ *   - getMiPerfil: ahora retorna MiPerfil (perfil privado completo del profesional).
  */
 
 import api from '../../../lib/axios';
-import type { Perfil, UpdatePerfilPayload } from '../types/perfil.types';
+import type {
+  MiPerfil,
+  PerfilPublico,
+  ProfesionalCard,
+  UpdatePerfilPayload,
+} from '../types/perfil.types';
 
-/** GET /identity/perfiles/mi — obtener mi perfil (profesional autenticado) */
-export async function getMiPerfil(): Promise<Perfil> {
-  const { data } = await api.get<Perfil>('/identity/perfiles/mi');
+/** GET /identity/perfiles — lista pública de profesionales aprobados (tarjetas) */
+export async function getProfesionales(): Promise<ProfesionalCard[]> {
+  const { data } = await api.get<ProfesionalCard[]>('/identity/perfiles');
   return data;
 }
 
-/** GET /identity/perfiles/:id — perfil público */
-export async function getPerfilPublico(id: string): Promise<Perfil> {
-  const { data } = await api.get<Perfil>(`/identity/perfiles/${id}`);
+/** GET /identity/perfiles/mi — obtener mi perfil (profesional autenticado) */
+export async function getMiPerfil(): Promise<MiPerfil> {
+  const { data } = await api.get<MiPerfil>('/identity/perfiles/mi');
+  return data;
+}
+
+/** GET /identity/perfiles/:id — perfil público (solo portafolio, sin documentos de identidad) */
+export async function getPerfilPublico(id: string): Promise<PerfilPublico> {
+  const { data } = await api.get<PerfilPublico>(`/identity/perfiles/${id}`);
   return data;
 }
 
 /** PUT /identity/perfiles — actualizar perfil */
-export async function updatePerfil(payload: UpdatePerfilPayload): Promise<Perfil> {
-  const { data } = await api.put<Perfil>('/identity/perfiles', payload);
+export async function updatePerfil(payload: UpdatePerfilPayload): Promise<MiPerfil> {
+  const { data } = await api.put<MiPerfil>('/identity/perfiles', payload);
   return data;
 }
 
 /**
  * POST /identity/perfiles/documentos — subir documento al portafolio.
  * Se envía como FormData porque incluye el archivo binario.
- * El campo `consentimientoIA` será añadido en RF3.
+ * El campo `consentimientoIA` es obligatorio (RF3).
  */
 export async function uploadDocumento(
   file: File,
