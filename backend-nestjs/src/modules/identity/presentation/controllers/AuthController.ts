@@ -54,8 +54,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
-} from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler'; // RNF3 (Agustin Parra)
+} from '@nestjs/common'; // RNF3 (Agustin Parra)
 
 @Controller('auth')
 export class AuthController {
