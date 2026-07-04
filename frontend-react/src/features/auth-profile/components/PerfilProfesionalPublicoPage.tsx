@@ -49,6 +49,7 @@ export function PerfilProfesionalPublicoPage() {
   const [perfil, setPerfil] = useState<PerfilPublico | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     if (!profileId) return;
@@ -124,11 +125,12 @@ export function PerfilProfesionalPublicoPage() {
           {/* Avatar */}
           <div className={styles.avatarCol}>
             <div className={styles.avatarWrap}>
-              {fotoPerfil ? (
+              {fotoPerfil && !imgError ? (
                 <img
                   src={fotoPerfil}
                   alt={`Foto de ${nombreProfesional}`}
                   className={styles.avatarImage}
+                  onError={() => setImgError(true)}
                 />
               ) : (
                 <div className={styles.avatarFallback} aria-hidden="true">
@@ -168,7 +170,7 @@ export function PerfilProfesionalPublicoPage() {
               onClick={async () => {
                 try {
                   await createSolicitud({
-                    profesionalId: perfil.id,
+                    profesionalId: perfil.usuarioId,
                     descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
                     esUrgencia: false,
                   });

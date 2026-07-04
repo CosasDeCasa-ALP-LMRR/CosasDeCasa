@@ -41,7 +41,7 @@ export class GetPerfilUseCase {
         aceptaUrgencias: true,
         promedioCalificacion: true,
         diasYHorarios: true,
-        // usuarioId, codigoPostal interno, estadoVerificacion — EXCLUIDOS del public
+        usuarioId: true, // EXCLUIDOS internal props excepto usuarioId para contacto
         usuario: {
           select: {
             nombre: true,
@@ -68,6 +68,7 @@ export class GetPerfilUseCase {
 
     return new PerfilPublicoResponseDto({
       id: perfil.id,
+      usuarioId: perfil.usuarioId,
       nombre: perfil.usuario.nombre,
       fotoPerfil: perfil.usuario.fotoPerfil ?? null,
       biografia: perfil.biografia,
