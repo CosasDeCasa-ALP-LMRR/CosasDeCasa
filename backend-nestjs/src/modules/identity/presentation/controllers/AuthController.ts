@@ -151,7 +151,7 @@ export class AuthController {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict' as const,
     };
 
@@ -202,7 +202,7 @@ export class AuthController {
     // Emitir el nuevo access token en su cookie
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict',
       maxAge: 15 * 60 * 1000, // 15 minutos
     });
@@ -238,7 +238,7 @@ export class AuthController {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict' as const,
     };
 
