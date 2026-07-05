@@ -39,7 +39,11 @@ export function sanitizeText(input: unknown, maxLen: number = DEFAULT_MAX_LEN): 
   return s;
 }
 
-const SUSPICIOUS_INPUT_PATTERN = new RegExp('<[^>]*>|javascript:|data:|vbscript:|on\\w+\\s*=', 'gi');
+// Detectar XSS, Inyección SQL (-- , UNION, OR 1=1) y NoSQL ($where, $ne)
+const SUSPICIOUS_INPUT_PATTERN = new RegExp(
+  '<[^>]*>|javascript:|data:|vbscript:|on\\w+\\s*=|--|;|\\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|OR 1=1)\\b|\\$where|\\$ne|\\$gt|\\$lt',
+  'gi'
+);
 
 export function isSuspiciousText(input: unknown): boolean {
   if (input === null || input === undefined) return false;
