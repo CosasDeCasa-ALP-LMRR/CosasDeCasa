@@ -27,6 +27,8 @@ import { IStorageAdapter } from './domain/adapters/IStorageAdapter';
 import { PrismaPerfilRepository } from './infrastructure/persistence/PrismaPerfilRepository';
 import { PrismaDocumentoRepository } from './infrastructure/persistence/PrismaDocumentoRepository';
 import { LocalStorageAdapter } from './infrastructure/adapters/LocalStorageAdapter';
+import { IOcrAdapter } from './domain/adapters/IOcrAdapter';
+import { GeminiOcrAdapter } from './infrastructure/adapters/GeminiOcrAdapter';
 // --- Casos de uso de perfil (RF2 - Cesar Gonzalez) ---
 import { GetPerfilUseCase } from './application/use-cases/GetPerfil.use-case';
 import { UpdatePerfilUseCase } from './application/use-cases/UpdatePerfil.use-case';
@@ -74,6 +76,7 @@ import { AuthController } from './presentation/controllers/AuthController';
     { provide: IPerfilRepository, useClass: PrismaPerfilRepository },
     { provide: IDocumentoRepository, useClass: PrismaDocumentoRepository },
     { provide: IStorageAdapter, useClass: LocalStorageAdapter },
+    { provide: IOcrAdapter, useClass: GeminiOcrAdapter },
     GetPerfilUseCase,
     UpdatePerfilUseCase,
     AddDocumentoUseCase,
@@ -103,6 +106,7 @@ import { AuthController } from './presentation/controllers/AuthController';
     IPerfilRepository,
     IDocumentoRepository,
     IStorageAdapter,
+    IOcrAdapter,
     GetPerfilUseCase,
     CancelAccountUseCase,
     // Autenticación (RF1/RNF1 - Luis Manuel)

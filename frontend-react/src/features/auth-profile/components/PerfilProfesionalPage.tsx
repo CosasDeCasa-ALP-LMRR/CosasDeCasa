@@ -621,7 +621,16 @@ export function PerfilProfesionalPage() {
                 <p className={styles.sectionDesc}>
                   Sube imágenes de trabajos realizados, identificación oficial o cédula profesional.
                 </p>
-                <PortafolioManager documentos={documentos} onUpdate={setDocumentos} />
+                <PortafolioManager
+                  documentos={documentos}
+                  onUpdate={setDocumentos}
+                  estadoVerificacion={perfil.estadoVerificacion}
+                  onReEvaluacion={(nuevoEstado) =>
+                    setPerfil((prev) =>
+                      prev ? { ...prev, estadoVerificacion: nuevoEstado } : prev
+                    )
+                  }
+                />
               </div>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import {
   Star, MapPin, Zap, Loader2, Phone, Mail,
   ArrowLeft, User, Folder, ShieldCheck,
-  FileText,
+  FileText, CheckCircle, AlertCircle
 } from 'lucide-react';
 import { ImageCarousel } from './ImageCarousel';
 import { sanitizeText } from '../../../context/sanitize';
@@ -50,6 +50,12 @@ export function PerfilProfesionalPublicoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imgError, setImgError] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     if (!profileId) return;
@@ -174,10 +180,10 @@ export function PerfilProfesionalPublicoPage() {
                     descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
                     esUrgencia: false,
                   });
-                  alert('Solicitud enviada correctamente.');
+                  showToast('Solicitud enviada correctamente. El profesional se pondrá en contacto pronto.', 'success');
                 } catch (err: unknown) {
                   console.error(err);
-                  alert('No se pudo crear la solicitud. Inicia sesión como cliente y vuelve a intentar.');
+                  showToast('No se pudo crear la solicitud. Inicia sesión como cliente y vuelve a intentar.', 'error');
                 }
               }}
             >
@@ -305,6 +311,16 @@ export function PerfilProfesionalPublicoPage() {
 
         </div>
       </div>
+
+      {/* ── TOAST CONTAINER ── */}
+      {toast && (
+        <div className={styles.toastContainer}>
+          <div className={`${styles.toast} ${styles[toast.type]}`}>
+            {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

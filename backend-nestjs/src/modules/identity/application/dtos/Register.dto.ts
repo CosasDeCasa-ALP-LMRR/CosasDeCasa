@@ -55,4 +55,10 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(RolRegistro, { message: 'El rol debe ser CLIENTE o PROFESIONAL' })
   rol?: RolRegistro;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(18, { message: 'El CURP debe tener 18 caracteres' })
+  @MaxLength(18, { message: 'El CURP debe tener 18 caracteres' })
+  curp?: string;
 }

@@ -59,18 +59,24 @@ export async function uploadDocumento(
   file: File,
   tipo: string,
   consentimientoIA: boolean = false,
-): Promise<{ id: string; urlArchivo: string; tipo: string }> {
+): Promise<{ 
+  documento?: { id: string; urlArchivo: string; tipo: string }; 
+  estadoVerificacion: string; 
+  mensajeValidacion?: string 
+}> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('tipo', tipo);
   formData.append('consentimientoIA', String(consentimientoIA));
 
-  const { data } = await api.post<{ id: string; urlArchivo: string; tipo: string }>(
+  const { data } = await api.post<{ 
+    documento?: { id: string; urlArchivo: string; tipo: string }; 
+    estadoVerificacion: string; 
+    mensajeValidacion?: string 
+  }>(
     '/identity/perfiles/documentos',
     formData,
     {
-      // Al pasar FormData, Axios establece automáticamente el Content-Type
-      // con el boundary correcto — no se sobrescribe manualmente.
       headers: { 'Content-Type': 'multipart/form-data' },
     },
   );
