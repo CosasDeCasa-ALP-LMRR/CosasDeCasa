@@ -153,6 +153,7 @@ export class PerfilController {
       file.originalname,
       file.mimetype,
       tipo,
+      consentimientoIA === 'true'
     );
   }
 

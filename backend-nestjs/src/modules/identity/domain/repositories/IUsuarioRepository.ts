@@ -11,4 +11,5 @@ export abstract class IUsuarioRepository {
   abstract findById(id: string): Promise<Usuario | null>;
   abstract findByCorreo(correo: string): Promise<Usuario | null>;
   abstract save(usuario: Usuario): Promise<Usuario>;
+  abstract update(id: string, data: Partial<Usuario>): Promise<Usuario>;
 }

@@ -2,8 +2,17 @@
  * @fileoverview LoginPage — RF1/RF2 professional login
  * @date 27/06/2026
  */
-import { useState, useEffect, useRef, type FormEvent } from 'react';
-import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from 'lucide-react';
+/**
+ * @modified 03/07/2026
+ * @author César González
+ * @requirement Desmitificar la "Seguridad" del FrontEnd
+ * @changes Se agregó rate-limiting visual: después de 5 intentos fallidos
+ *          el botón de login se bloquea durante 60 segundos con una cuenta
+ *          regresiva visible, espejando el @Throttle del backend (5 req/min).
+ *          Esto hace visible al usuario que la protección existe en ambas capas.
+ */
+import { useState, useEffect, useRef, useCallback, type FormEvent } from 'react';
+import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { login } from '../services/auth.service';
 import { useAuth } from '../../../context/AuthContext';
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
@@ -35,6 +44,12 @@ const SLIDES = [
 
 const INTERVAL_MS = 4500;
 
+// ── Configuración de rate-limiting visual ──────────────────────────────────────
+// Espeja el @Throttle del backend: 5 intentos por 60 segundos.
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_SECONDS = 60;
+// ──────────────────────────────────────────────────────────────────────────────
+
 export function LoginPage({ onGoRegister }: Props) {
   const { login: loginCtx } = useAuth();
 
@@ -47,6 +62,35 @@ export function LoginPage({ onGoRegister }: Props) {
   const [current, setCurrent] = useState(0);
   const [showAviso, setShowAviso] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Rate-limiting visual ───────────────────────────────────────────────────
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutSecondsLeft, setLockoutSecondsLeft] = useState(0);
+  const lockoutTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isLockedOut = lockoutSecondsLeft > 0;
+
+  const startLockout = useCallback(() => {
+    setLockoutSecondsLeft(LOCKOUT_SECONDS);
+    lockoutTimerRef.current = setInterval(() => {
+      setLockoutSecondsLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(lockoutTimerRef.current!);
+          lockoutTimerRef.current = null;
+          setFailedAttempts(0); // Reset intentos al acabar el bloqueo
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (lockoutTimerRef.current) clearInterval(lockoutTimerRef.current);
+    };
+  }, []);
+  // ──────────────────────────────────────────────────────────────────────────
 
   const goTo = (index: number) => {
     setCurrent(index);
@@ -69,6 +113,9 @@ export function LoginPage({ onGoRegister }: Props) {
     e.preventDefault();
     setError(null);
 
+    // Bloqueo por demasiados intentos
+    if (isLockedOut) return;
+
     if (Object.values(fieldErrors).some(Boolean)) {
       setError('Corrige los campos con errores antes de continuar.');
       return;
@@ -85,11 +132,22 @@ export function LoginPage({ onGoRegister }: Props) {
       await loginCtx();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError(err.message ?? 'Correo o contraseña incorrectos');
+      // Incrementar contador de intentos fallidos
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+
+      if (newAttempts >= MAX_ATTEMPTS) {
+        startLockout();
+        setError(null); // El banner de lockout reemplaza el error
+      } else {
+        setError(err.message ?? 'Correo o contraseña incorrectos');
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const attemptsLeft = MAX_ATTEMPTS - failedAttempts;
 
   return (
     <div className={styles.page}>
@@ -167,7 +225,34 @@ export function LoginPage({ onGoRegister }: Props) {
             <p className={styles.formSubtitle}>Accede a tu cuenta</p>
           </div>
 
-          {error && (
+          {/* Banner de bloqueo por demasiados intentos */}
+          {isLockedOut && (
+            <div className={styles.lockoutBanner} role="alert" aria-live="assertive">
+              <ShieldAlert size={18} className={styles.lockoutIcon} />
+              <div className={styles.lockoutText}>
+                <strong>Demasiados intentos fallidos</strong>
+                <span>
+                  Por seguridad, el acceso está bloqueado.
+                  Intenta de nuevo en{' '}
+                  <span className={styles.lockoutCountdown}>{lockoutSecondsLeft}s</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Advertencia de intentos restantes */}
+          {!isLockedOut && failedAttempts > 0 && failedAttempts < MAX_ATTEMPTS && (
+            <div className={styles.attemptsWarning} role="status">
+              <AlertCircle size={14} />
+              <span>
+                {attemptsLeft === 1
+                  ? 'Último intento antes del bloqueo temporal'
+                  : `${attemptsLeft} intentos restantes antes del bloqueo`}
+              </span>
+            </div>
+          )}
+
+          {error && !isLockedOut && (
             <div className={styles.errorBanner} role="alert">
               <AlertCircle size={15} />
               <span>{error}</span>
@@ -203,6 +288,7 @@ export function LoginPage({ onGoRegister }: Props) {
                   placeholder="tu@correo.com"
                   autoComplete="email"
                   required
+                  disabled={isLockedOut}
                 />
               </div>
               {fieldErrors.correo && <p className={styles.fieldError}>{fieldErrors.correo}</p>}
@@ -236,6 +322,7 @@ export function LoginPage({ onGoRegister }: Props) {
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
+                  disabled={isLockedOut}
                 />
                 <button
                   type="button"
@@ -252,14 +339,21 @@ export function LoginPage({ onGoRegister }: Props) {
             <button
               id="btn-login"
               type="submit"
-              className={styles.submitBtn}
-              disabled={loading || !correo || !password || Object.values(fieldErrors).some(Boolean)}
+              className={[styles.submitBtn, isLockedOut ? styles.submitBtnLocked : ''].join(' ')}
+              disabled={loading || !correo || !password || Object.values(fieldErrors).some(Boolean) || isLockedOut}
             >
               {loading
                 ? <Loader2 size={17} className={styles.spinner} />
-                : <LogIn size={17} />
+                : isLockedOut
+                  ? <ShieldAlert size={17} />
+                  : <LogIn size={17} />
               }
-              {loading ? 'Verificando...' : 'Ingresar'}
+              {loading
+                ? 'Verificando...'
+                : isLockedOut
+                  ? `Bloqueado (${lockoutSecondsLeft}s)`
+                  : 'Ingresar'
+              }
             </button>
 
             <p className={styles.privacyNoticeText}>

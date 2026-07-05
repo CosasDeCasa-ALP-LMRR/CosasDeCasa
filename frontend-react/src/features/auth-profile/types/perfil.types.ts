@@ -61,6 +61,7 @@ export interface ProfesionalCard {
  */
 export interface PerfilPublico {
   id: string;
+  usuarioId: string;
   nombre: string;
   fotoPerfil: string | null;
   biografia: string | null;

@@ -1,15 +1,57 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend-react</title>
+    <title>CosasDeCasa — Profesionales de confianza para tu hogar</title>
 
-    <!-- Prevención básica de Inyección de Contenido -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 ws://localhost:5173 'unsafe-inline' 'unsafe-eval' data: blob:; img-src * data: blob:;" />
-    
-    <!-- Prevención de Clickjacking (Frame Buster) para producción -->
+    <!--
+      ═══════════════════════════════════════════════════════════════════
+      Content-Security-Policy (CSP) — Capa 1 de defensa en el FrontEnd
+      ───────────────────────────────────────────────────────────────────
+      @modified   03/07/2026
+      @author     César González
+      @requirement Desmitificar la "Seguridad" del FrontEnd
+
+      El backend ya envía este header via helmet(). Esta meta-tag
+      es una segunda capa de defensa que funciona incluso cuando
+      el servidor no está disponible (ej. CDN que sirve el HTML).
+
+      Directivas:
+        default-src 'self'          → Solo recursos del mismo origen.
+        script-src  'self'          → Solo scripts del mismo origen.
+          + 'unsafe-inline'         → Necesario en DEV por Vite HMR.
+          + 'unsafe-eval'           → Necesario en DEV por source maps.
+            ⚠ En PRODUCCIÓN estas dos directivas se eliminan
+              y se sustituyen por nonces o hashes de Vite.
+        style-src  'self' 'unsafe-inline' → CSS-in-JS / módulos CSS de Vite.
+        img-src    * data: blob:    → Imágenes de Unsplash (carrusel) y uploads.
+        connect-src 'self'
+          http://localhost:3000     → API del backend en DEV.
+          ws://localhost:5173       → WebSocket de Vite HMR en DEV.
+        font-src   'self'           → Fuentes locales.
+        frame-ancestors 'none'      → Prevención de Clickjacking (duplica X-Frame-Options).
+        base-uri   'self'           → Previene inyección de <base> para redirect.
+        form-action 'self'          → Los <form> solo pueden enviar al mismo origen.
+      ═══════════════════════════════════════════════════════════════════
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src  'self' 'unsafe-inline' 'unsafe-eval';
+        style-src   'self' 'unsafe-inline';
+        img-src     * data: blob:;
+        connect-src 'self' http://localhost:3000 ws://localhost:5173;
+        font-src    'self';
+        frame-ancestors 'none';
+        base-uri    'self';
+        form-action 'self';
+      "
+    />
+
+    <!-- Prevención de Clickjacking (Frame Buster) como respaldo JS -->
     <script>
       if (window.top !== window.self) {
         window.top.location = window.self.location;
