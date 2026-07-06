@@ -9,8 +9,13 @@ import {
   Trash2,
   ExternalLink,
   Loader2,
+  Info,
+  Sparkles,
+  X,
+  CheckCircle2,
 } from 'lucide-react';
 import type { Documento } from '../types/perfil.types';
+import type { EstadoVerificacion } from '../types/perfil.types';
 import { TIPOS_DOCUMENTO } from '../types/perfil.types';
 import { uploadDocumento, deleteDocumento } from '../services/perfil.service';
 import { ImageCarousel } from './ImageCarousel';
@@ -19,6 +24,8 @@ import styles from './PortafolioManager.module.css';
 interface Props {
   documentos: Documento[];
   onUpdate: (docs: Documento[]) => void;
+  estadoVerificacion?: EstadoVerificacion;
+  onReEvaluacion?: (estado: EstadoVerificacion) => void;
 }
 
 function getFileIcon(urlArchivo: string) {
@@ -29,13 +36,19 @@ function getFileIcon(urlArchivo: string) {
   return <FileText size={20} />;
 }
 
-export function PortafolioManager({ documentos, onUpdate }: Props) {
+export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, onReEvaluacion }: Props) {
   const [selectedTipo, setSelectedTipo] = useState(TIPOS_DOCUMENTO[0].value);
   const [uploading, setUploading] = useState(false);
   const [consentimientoIA, setConsentimientoIA] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reEvalToast, setReEvalToast] = useState<{ show: boolean, mensaje: string }>({ show: false, mensaje: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const showReEvalToast = (mensaje: string) => {
+    setReEvalToast({ show: true, mensaje });
+    setTimeout(() => setReEvalToast({ show: false, mensaje: '' }), 8000);
+  };
 
   const portfolioImages = documentos
     .filter(d => d.tipo === 'PORTAFOLIO')
@@ -50,14 +63,29 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
     setError(null);
     try {
       const result = await uploadDocumento(file, selectedTipo, consentimientoIA);
-      const newDoc: Documento = {
-        id: result.id,
-        perfilId: '',
-        tipo: result.tipo,
-        urlArchivo: result.urlArchivo,
-        fechaSubida: new Date().toISOString(),
-      };
-      onUpdate([...documentos, newDoc]);
+      
+      if (result.documento) {
+        const newDoc: Documento = {
+          id: result.documento.id,
+          perfilId: '',
+          tipo: result.documento.tipo as any,
+          urlArchivo: result.documento.urlArchivo,
+          fechaSubida: new Date().toISOString(),
+        };
+        onUpdate([...documentos, newDoc]);
+      }
+
+      // Si se subió INE o CÉDULA, puede haber cambiado el estado de verificación
+      if (selectedTipo === 'INE' || selectedTipo === 'CEDULA') {
+        const mensaje = result.mensajeValidacion || 
+          (result.estadoVerificacion === 'PENDIENTE' ? 'Tu perfil ha vuelto a estado "Pendiente" tras subir un nuevo documento.' : 'Documento procesado.');
+        
+        showReEvalToast(mensaje);
+        
+        if (result.estadoVerificacion !== estadoVerificacion) {
+          onReEvaluacion?.(result.estadoVerificacion as EstadoVerificacion);
+        }
+      }
     } catch (err: any) {
       setError(err.message || 'Error al subir el archivo');
     } finally {
@@ -104,7 +132,11 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
 
       {/* Upload Area */}
       <div className={styles.uploadSection}>
-        <div className={styles.consentSection}>
+        <div className={`${styles.consentSection} ${(selectedTipo === 'INE' || selectedTipo === 'CEDULA') ? styles.consentActive : ''}`}>
+          <div className={styles.consentHeader}>
+            <Sparkles size={18} className={styles.aiIcon} />
+            <strong>Validación Rápida con IA</strong>
+          </div>
           <label className={styles.consentLabel}>
             <input
               type="checkbox"
@@ -114,7 +146,7 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
               className={styles.consentCheckbox}
             />
             <span className={styles.consentText}>
-              Autorizo el tratamiento de este documento mediante inteligencia artificial para la validación de mi identidad.
+              Autorizo el análisis de mi documento con Inteligencia Artificial para acelerar la activación de mi perfil sin esperar una revisión manual.
             </span>
           </label>
         </div>
@@ -144,7 +176,7 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
             ) : (
               <Upload size={16} />
             )}
-            {uploading ? 'Subiendo...' : 'Subir archivo'}
+            {uploading ? ((selectedTipo === 'INE' || selectedTipo === 'CEDULA') && consentimientoIA ? 'Validando con IA...' : 'Subiendo...') : 'Subir archivo'}
           </button>
           <input
             ref={fileInputRef}
@@ -163,7 +195,7 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
         )}
       </div>
 
-      {/* Documents List */}
+      {/* Lista de documentos */}
       {documentos.length === 0 ? (
         <div className={styles.empty}>
           <Upload size={36} strokeWidth={1.2} />
@@ -211,6 +243,45 @@ export function PortafolioManager({ documentos, onUpdate }: Props) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal de re-evaluación / IA */}
+      {reEvalToast.show && (
+        <div className={styles.modalOverlay} onClick={() => setReEvalToast({ show: false, mensaje: '' })}>
+          <div 
+            className={`${styles.modalContent} ${reEvalToast.mensaje.includes('exitosamente') ? styles.modalSuccess : styles.modalWarning}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className={styles.modalCloseBtn} 
+              onClick={() => setReEvalToast({ show: false, mensaje: '' })}
+            >
+              <X size={20} />
+            </button>
+            
+            <div className={styles.modalIconWrapper}>
+              {reEvalToast.mensaje.includes('exitosamente') ? (
+                <Sparkles size={36} className={styles.toastIconSparkle} />
+              ) : (
+                <Info size={36} className={styles.toastIconInfo} />
+              )}
+            </div>
+            
+            <div className={styles.modalTextBody}>
+              <h3 className={styles.modalTitle}>
+                {reEvalToast.mensaje.includes('exitosamente') ? 'Identidad Validada' : 'Aviso de Revisión'}
+              </h3>
+              <p className={styles.modalDesc}>{reEvalToast.mensaje}</p>
+            </div>
+
+            <button 
+              className={`${styles.modalActionBtn} ${reEvalToast.mensaje.includes('exitosamente') ? styles.btnSuccess : styles.btnWarning}`}
+              onClick={() => setReEvalToast({ show: false, mensaje: '' })}
+            >
+              {reEvalToast.mensaje.includes('exitosamente') ? 'Continuar' : 'Entendido'}
+            </button>
+          </div>
         </div>
       )}
     </div>

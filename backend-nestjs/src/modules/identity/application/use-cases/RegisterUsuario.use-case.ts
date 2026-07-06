@@ -45,6 +45,7 @@ export class RegisterUsuarioUseCase {
       passwordHash,
       dto.rol ?? 'CLIENTE',
       true,
+      dto.curp,
     );
 
     const guardado = await this.usuarioRepository.save(usuario);

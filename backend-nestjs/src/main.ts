@@ -5,6 +5,15 @@
  * @changes Se registró el middleware cookie-parser para que NestJS pueda leer
  *          las cookies HttpOnly donde se almacena el token JWT.
  */
+/**
+ * @modified 03/07/2026
+ * @author César González
+ * @requirement Desmitificar la "Seguridad" del FrontEnd
+ * @changes Se agregó `forbidNonWhitelisted: true` al ValidationPipe global.
+ *          Esto hace que cualquier campo no declarado en un DTO sea rechazado
+ *          con un 400 Bad Request, en lugar de ser silenciosamente ignorado.
+ *          Previene ataques donde el atacante envía campos extra saltando el FrontEnd.
+ */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -29,6 +38,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true, // Rechaza campos no declarados en el DTO (bypass del FE)
       transform: true,
     }),
   );

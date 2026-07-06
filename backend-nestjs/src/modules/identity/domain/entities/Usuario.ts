@@ -13,6 +13,7 @@ export class Usuario {
     public passwordHash: string,
     public rol: string,
     public activo: boolean,
+    public curp?: string | null,
     public readonly fechaCreacion?: Date,
   ) {}
 }

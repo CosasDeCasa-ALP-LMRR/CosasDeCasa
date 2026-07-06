@@ -22,6 +22,7 @@ interface FieldErrors {
   correo?: string;
   password?: string;
   confirm?: string;
+  curp?: string;
 }
 
 const SLIDES = [
@@ -50,12 +51,15 @@ function validate(
   correo: string,
   password: string,
   confirm: string,
+  curp: string,
+  rol: string,
 ): FieldErrors {
   const errors: FieldErrors = {};
   if (!nombre.trim()) errors.nombre = 'El nombre es requerido';
   if (!correo.includes('@')) errors.correo = 'Ingresa un correo válido';
   if (password.length < 8) errors.password = 'Mínimo 8 caracteres';
   if (password !== confirm) errors.confirm = 'Las contraseñas no coinciden';
+  if (rol === 'PROFESIONAL' && (!curp.trim() || curp.length !== 18)) errors.curp = 'El CURP debe tener 18 caracteres';
   return errors;
 }
 
@@ -65,6 +69,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [curp, setCurp] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -116,7 +121,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
     e.preventDefault();
     setError(null);
 
-    const errors = validate(nombre, correo, password, confirm);
+    const errors = validate(nombre, correo, password, confirm, curp, rol);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -135,6 +140,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
         correo: sanitizeText(correo, 100),
         password,
         rol,
+        ...(rol === 'PROFESIONAL' ? { curp: sanitizeText(curp.toUpperCase(), 18) } : {}),
       });
       setSuccess(true);
       // Redirigir al login después de mostrar el mensaje de éxito
@@ -342,6 +348,39 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
               </div>
               {fieldErrors.correo && <p className={styles.fieldError}>{fieldErrors.correo}</p>}
             </div>
+
+            {rol === 'PROFESIONAL' && (
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel} htmlFor="reg-curp">
+                  CURP
+                </label>
+                <div className={styles.inputWrap}>
+                  <span className={styles.inputIcon}><User size={16} /></span>
+                  <input
+                    id="reg-curp"
+                    type="text"
+                    className={[styles.input, fieldErrors.curp ? styles.inputError : ''].join(' ')}
+                    value={curp}
+                    onChange={e => {
+                      const value = e.target.value.toUpperCase();
+                      if (isSuspiciousText(value)) {
+                        setFieldErrors(p => ({
+                          ...p,
+                          curp: 'No se permiten caracteres sospechosos.',
+                        }));
+                      } else {
+                        setCurp(sanitizeText(value, 18));
+                        setFieldErrors(p => ({ ...p, curp: undefined }));
+                      }
+                    }}
+                    placeholder="18 caracteres"
+                    autoComplete="off"
+                    maxLength={18}
+                  />
+                </div>
+                {fieldErrors.curp && <p className={styles.fieldError}>{fieldErrors.curp}</p>}
+              </div>
+            )}
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel} htmlFor="reg-password">

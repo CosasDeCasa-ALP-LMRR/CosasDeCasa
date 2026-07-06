@@ -203,6 +203,76 @@
   }
 }
 
+/* ─── Rate-limiting: banner de bloqueo ───────────────────── */
+.lockoutBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 15px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: fadeInDown 0.3s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lockoutIcon {
+  color: var(--error-color);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.lockoutText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lockoutText strong {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--error-color);
+}
+
+.lockoutText span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.lockoutCountdown {
+  font-weight: 700;
+  color: var(--error-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Rate-limiting: advertencia de intentos restantes ───── */
+.attemptsWarning {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  color: #d97706;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+/* ─── Botón en estado bloqueado ──────────────────────────── */
+.submitBtnLocked {
+  background: var(--surface-3, #374151) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
 /* ─── Formulario ─────────────────────────────────────────── */
 .form {
   display: flex;

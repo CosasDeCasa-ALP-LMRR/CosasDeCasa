@@ -23,6 +23,7 @@ export class DocumentoPublicoDto {
 
 export class PerfilPublicoResponseDto {
   id: string;
+  usuarioId: string;
   nombre: string;
   fotoPerfil: string | null;
   biografia: string | null;
@@ -38,6 +39,7 @@ export class PerfilPublicoResponseDto {
 
   constructor(data: {
     id: string;
+    usuarioId: string;
     nombre: string;
     fotoPerfil: string | null;
     biografia: string | null;

@@ -4,16 +4,25 @@
  * @date 26/06/2026
  * @requirement RF1: API de Registro, Autenticación y Control de Roles
  */
+/**
+ * @modified 03/07/2026
+ * @author César González
+ * @requirement Desmitificar la "Seguridad" del FrontEnd
+ * @changes Se agregaron @MaxLength en correo y password para rechazar payloads
+ *          inflados incluso si el FrontEnd es bypasseado desde las DevTools del navegador.
+ */
 
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { Sanitize } from '../decorators/sanitize.decorator';
 
 export class LoginDto {
   @IsEmail({}, { message: 'El correo debe ser una dirección válida' })
+  @MaxLength(54, { message: 'El correo no puede superar los 254 caracteres' })
   @Sanitize()
   correo: string;
 
   @IsString()
   @IsNotEmpty({ message: 'La contraseña es requerida' })
+  @MaxLength(64, { message: 'La contraseña no puede superar los 64 caracteres' })
   password: string;
 }

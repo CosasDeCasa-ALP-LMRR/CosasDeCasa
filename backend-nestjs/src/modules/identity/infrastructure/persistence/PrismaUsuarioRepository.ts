@@ -23,6 +23,7 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
       prismaUsuario.passwordHash,
       prismaUsuario.rol,
       prismaUsuario.activo,
+      prismaUsuario.curp,
       prismaUsuario.fechaCreacion,
     );
   }
@@ -52,7 +53,20 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
         passwordHash: usuario.passwordHash,
         rol: usuario.rol as any,
         activo: usuario.activo,
+        curp: usuario.curp,
       },
+    });
+    return this.mapToDomain(prismaUsuario);
+  }
+
+  async update(id: string, data: Partial<Usuario>): Promise<Usuario> {
+    const prismaData: any = { ...data };
+    if (data.rol) {
+      prismaData.rol = data.rol as any;
+    }
+    const prismaUsuario = await this.prismaService.usuario.update({
+      where: { id },
+      data: prismaData,
     });
     return this.mapToDomain(prismaUsuario);
   }
