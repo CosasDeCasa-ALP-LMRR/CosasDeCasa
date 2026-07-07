@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Loader2, User } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { uploadFotoPerfil } from '../services/auth.service';
 import styles from './ProfileAvatar.module.css';
