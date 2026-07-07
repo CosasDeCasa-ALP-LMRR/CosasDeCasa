@@ -58,6 +58,8 @@ import { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepo
 import { PrismaRefreshTokenRepository } from './infrastructure/persistence/PrismaRefreshTokenRepository';
 // --- Controlador de autenticación (RF1/RNF1 - Luis Manuel) ---
 import { AuthController } from './presentation/controllers/AuthController';
+// --- Servicios de Fondo (Cron) ---
+import { DataLifecycleCronService } from './application/services/DataLifecycleCronService';
 
 @Module({
   imports: [
@@ -100,6 +102,7 @@ import { AuthController } from './presentation/controllers/AuthController';
     LoginUsuarioUseCase,
     UpdateFotoPerfilUseCase,
     RefreshTokenUseCase,
+    DataLifecycleCronService,
   ],
   exports: [
     // Perfil (RF2 - Cesar Gonzalez)
