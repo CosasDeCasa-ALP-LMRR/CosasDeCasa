@@ -38,6 +38,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../guards/roles.decorator';
+import { DocumentoOwnerGuard } from '../guards/documento-owner.guard';
 import { UpdatePerfilDto } from '../../application/dtos/UpdatePerfil.dto';
 import { VerifyPerfilDto } from '../../application/dtos/VerifyPerfil.dto';
 import { GetPerfilUseCase } from '../../application/use-cases/GetPerfil.use-case';
@@ -158,7 +159,7 @@ export class PerfilController {
   }
 
   @Delete('documentos/:documentoId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, DocumentoOwnerGuard)
   @Roles('PROFESIONAL')
   async deleteDocumento(
     @Req() req: any,

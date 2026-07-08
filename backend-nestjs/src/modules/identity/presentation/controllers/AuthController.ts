@@ -128,6 +128,7 @@ export class AuthController {
    * POST /auth/register
    */
   @Post('register')
+  @Throttle({ default: { ttl: 60000, limit: 10 } }) // Máx. 10 registros/minuto por IP
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterDto) {
     return await this.registerUsuarioUseCase.execute(dto);

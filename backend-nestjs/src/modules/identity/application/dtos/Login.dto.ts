@@ -13,16 +13,16 @@
  */
 
 import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { Sanitize } from '../decorators/sanitize.decorator';
+import { Sanitize } from '../../../../common/decorators/sanitize.decorator';
 
 export class LoginDto {
   @IsEmail({}, { message: 'El correo debe ser una dirección válida' })
-  @MaxLength(54, { message: 'El correo no puede superar los 254 caracteres' })
+  @MaxLength(154, { message: 'El correo no puede superar los 154 caracteres' })
   @Sanitize()
   correo: string;
 
   @IsString()
   @IsNotEmpty({ message: 'La contraseña es requerida' })
-  @MaxLength(64, { message: 'La contraseña no puede superar los 64 caracteres' })
+  @MaxLength(12, { message: 'La contraseña no puede superar los 12 caracteres' })
   password: string;
 }

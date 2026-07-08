@@ -16,13 +16,16 @@
  *          - etiquetas[]: máx 50 chars por elemento
  */
 
-import { IsString, IsOptional, IsArray, IsBoolean, MaxLength } from 'class-validator';
-import { Sanitize } from '../decorators/sanitize.decorator';
+import { IsString, IsOptional, IsArray, IsBoolean, MaxLength, Matches } from 'class-validator';
+import { Sanitize } from '../../../../common/decorators/sanitize.decorator';
 
 export class UpdatePerfilDto {
   @IsOptional()
   @IsString()
   @MaxLength(20, { message: 'El teléfono no puede superar los 20 caracteres' })
+  @Matches(/^[\+]?[\d\s\-\(\)]{7,20}$/, {
+    message: 'El teléfono solo puede contener dígitos, espacios, +, guiones y paréntesis (ej. +52 55 1234 5678)',
+  })
   @Sanitize()
   telefono?: string;
 
