@@ -17,6 +17,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ThrottlerExceptionFilter } from './common/filters/throttler-exception.filter';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const cookieParser = require('cookie-parser');
 import * as express from 'express';
@@ -31,8 +32,27 @@ async function bootstrap() {
   const httpsOptions = await getHttpsOptions();
   const app = await NestFactory.create(AppModule, { httpsOptions });
   
-  // Seguridad: Prevenir Clickjacking, Inyección, etc.
-  app.use(helmet());
+  // Seguridad: Prevenir Clickjacking, Inyección, aislar orígenes y forzar tipos
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          objectSrc: ["'none'"],
+          frameAncestors: ["'none'"], 
+          frameSrc: ["'none'"], 
+          upgradeInsecureRequests: [],
+        },
+      },
+      xContentTypeOptions: true, 
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginEmbedderPolicy: { policy: 'require-corp' },
+      frameguard: { action: 'deny' }, 
+    }),
+  );
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   app.useGlobalPipes(
@@ -41,6 +61,11 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // Rechaza campos no declarados en el DTO (bypass del FE)
       transform: true,
     }),
+  );
+
+  // RNF3: Filtro global de Rate Limiting — añade Retry-After y registra IPs bloqueadas en Winston
+  app.useGlobalFilters(
+    new ThrottlerExceptionFilter(app.get('winston')),
   );
 
   // Middleware para parsear cookies (requerido por RNF1 - JWT en cookies HttpOnly)

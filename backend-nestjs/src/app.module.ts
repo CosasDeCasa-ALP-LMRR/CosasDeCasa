@@ -15,6 +15,7 @@ import { MessagingModule } from './modules/messaging/messaging.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './logger/winston.config';
 import { AntiInjectionMiddleware } from './common/middlewares/anti-injection.middleware';
+import { XssMiddleware } from './common/middlewares/xss.middleware';
 
 @Module({
   imports: [
@@ -36,6 +37,6 @@ import { AntiInjectionMiddleware } from './common/middlewares/anti-injection.mid
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AntiInjectionMiddleware).forRoutes('*');
+    consumer.apply(XssMiddleware, AntiInjectionMiddleware).forRoutes('*');
   }
 }

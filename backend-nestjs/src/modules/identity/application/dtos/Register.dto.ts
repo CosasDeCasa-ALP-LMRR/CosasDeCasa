@@ -24,7 +24,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Sanitize } from '../decorators/sanitize.decorator';
+import { Sanitize } from '../../../../common/decorators/sanitize.decorator';
+import { IsCURPMexicano } from '../../../../common/decorators/is-curp.decorator';
 
 export enum RolRegistro {
   CLIENTE = 'CLIENTE',
@@ -34,18 +35,21 @@ export enum RolRegistro {
 export class RegisterDto {
   @IsString()
   @IsNotEmpty({ message: 'El nombre es requerido' })
-  @MaxLength(60, { message: 'El nombre no puede superar los 100 caracteres' })
+  @MaxLength(80, { message: 'El nombre no puede superar los 80 caracteres' })
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, {
+    message: 'El nombre solo puede contener letras y espacios. Caracteres especiales no permitidos.',
+  })
   @Sanitize()
   nombre: string;
 
   @IsEmail({}, { message: 'El correo debe ser una dirección válida' })
-  @MaxLength(54, { message: 'El correo no puede superar los 254 caracteres' })
+  @MaxLength(154, { message: 'El correo no puede superar los 154 caracteres' })
   @Sanitize()
   correo: string;
 
   @IsString()
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
-  @MaxLength(128, { message: 'La contraseña no puede superar los 128 caracteres' })
+  @MaxLength(12, { message: 'La contraseña no puede superar los 12 caracteres' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).+$/, {
     message:
       'La contraseña debe contener al menos una letra y un número',
@@ -58,7 +62,7 @@ export class RegisterDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(18, { message: 'El CURP debe tener 18 caracteres' })
-  @MaxLength(18, { message: 'El CURP debe tener 18 caracteres' })
+  @IsCURPMexicano()
+  @Sanitize()
   curp?: string;
 }
