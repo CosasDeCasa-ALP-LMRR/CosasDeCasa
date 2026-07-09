@@ -49,7 +49,7 @@ export class RegisterDto {
 
   @IsString()
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
-  @MaxLength(12, { message: 'La contraseña no puede superar los 12 caracteres' })
+  @MaxLength(30, { message: 'La contraseña no puede superar los 30 caracteres' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).+$/, {
     message:
       'La contraseña debe contener al menos una letra y un número',
