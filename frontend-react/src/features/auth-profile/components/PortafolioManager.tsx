@@ -63,7 +63,7 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
     setError(null);
     try {
       const result = await uploadDocumento(file, selectedTipo, consentimientoIA);
-      
+
       if (result.documento) {
         const newDoc: Documento = {
           id: result.documento.id,
@@ -77,11 +77,11 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
 
       // Si se subió INE o CÉDULA, puede haber cambiado el estado de verificación
       if (selectedTipo === 'INE' || selectedTipo === 'CEDULA') {
-        const mensaje = result.mensajeValidacion || 
+        const mensaje = result.mensajeValidacion ||
           (result.estadoVerificacion === 'PENDIENTE' ? 'Tu perfil ha vuelto a estado "Pendiente" tras subir un nuevo documento.' : 'Documento procesado.');
-        
+
         showReEvalToast(mensaje);
-        
+
         if (result.estadoVerificacion !== estadoVerificacion) {
           onReEvaluacion?.(result.estadoVerificacion as EstadoVerificacion);
         }
@@ -135,7 +135,7 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
         <div className={`${styles.consentSection} ${(selectedTipo === 'INE' || selectedTipo === 'CEDULA') ? styles.consentActive : ''}`}>
           <div className={styles.consentHeader}>
             <Sparkles size={18} className={styles.aiIcon} />
-            <strong>Validación Rápida con IA</strong>
+            <strong>Validación Rápida con Inteligencia Artificial</strong>
           </div>
           <label className={styles.consentLabel}>
             <input
@@ -249,17 +249,17 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
       {/* Modal de re-evaluación / IA */}
       {reEvalToast.show && (
         <div className={styles.modalOverlay} onClick={() => setReEvalToast({ show: false, mensaje: '' })}>
-          <div 
+          <div
             className={`${styles.modalContent} ${reEvalToast.mensaje.includes('exitosamente') ? styles.modalSuccess : styles.modalWarning}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <button 
-              className={styles.modalCloseBtn} 
+            <button
+              className={styles.modalCloseBtn}
               onClick={() => setReEvalToast({ show: false, mensaje: '' })}
             >
               <X size={20} />
             </button>
-            
+
             <div className={styles.modalIconWrapper}>
               {reEvalToast.mensaje.includes('exitosamente') ? (
                 <Sparkles size={36} className={styles.toastIconSparkle} />
@@ -267,7 +267,7 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
                 <Info size={36} className={styles.toastIconInfo} />
               )}
             </div>
-            
+
             <div className={styles.modalTextBody}>
               <h3 className={styles.modalTitle}>
                 {reEvalToast.mensaje.includes('exitosamente') ? 'Identidad Validada' : 'Aviso de Revisión'}
@@ -275,7 +275,7 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
               <p className={styles.modalDesc}>{reEvalToast.mensaje}</p>
             </div>
 
-            <button 
+            <button
               className={`${styles.modalActionBtn} ${reEvalToast.mensaje.includes('exitosamente') ? styles.btnSuccess : styles.btnWarning}`}
               onClick={() => setReEvalToast({ show: false, mensaje: '' })}
             >

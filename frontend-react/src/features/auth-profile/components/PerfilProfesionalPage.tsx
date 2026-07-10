@@ -372,7 +372,7 @@ export function PerfilProfesionalPage() {
       alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
       await logout();
       window.location.href = '/';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
     } finally {
@@ -837,9 +837,9 @@ export function PerfilProfesionalPage() {
         )}
 
       </div>
-      
+
       {isCancelModalOpen && (
-        <CancelAccountModal 
+        <CancelAccountModal
           onClose={() => setIsCancelModalOpen(false)}
           onConfirm={handleCancelAccount}
           isLoading={isLoadingCancel}
