@@ -24,6 +24,7 @@ export class CreateSolicitudUseCase {
     profesionalId: string,
     descripcion: string,
     esUrgencia: boolean,
+    telefonoCliente?: string,
   ) {
     const profesional = await this.usuarioRepository.findById(profesionalId);
     if (!profesional || profesional.rol !== 'PROFESIONAL') {
@@ -41,6 +42,7 @@ export class CreateSolicitudUseCase {
       profesionalId,
       descripcion,
       esUrgencia,
+      telefonoCliente,
     });
   }
 }

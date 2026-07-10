@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
 } from 'class-validator';
 
@@ -25,4 +26,16 @@ export class CreateSolicitudDto {
   @IsOptional()
   @IsBoolean({ message: 'esUrgencia debe ser verdadero o falso' })
   esUrgencia?: boolean;
+
+  /**
+   * Teléfono del cliente en formato E.164 (RF9/RF13).
+   * Opcional para no romper solicitudes existentes, pero recomendado
+   * para habilitar el contacto rápido por WhatsApp.
+   */
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+?[1-9]\d{6,14}$/, {
+    message: 'El teléfono debe ser un número válido en formato internacional (ej. +524151234567)',
+  })
+  telefonoCliente?: string;
 }

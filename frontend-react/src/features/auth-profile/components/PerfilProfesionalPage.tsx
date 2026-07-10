@@ -3,13 +3,14 @@ import {
   User, Phone, AlignLeft, Briefcase, Tag, Calendar,
   Folder, AlertTriangle, CheckCircle, Save, Loader2,
   RotateCcw, MapPin, Camera, ShieldCheck, Mail,
-  IdCard,
+  IdCard, MessageCircle,
 } from 'lucide-react';
 
 import type { Perfil, UpdatePerfilPayload, DiaHorario, Documento } from '../types/perfil.types';
 import { CATEGORIAS_PRINCIPALES } from '../types/perfil.types';
 import { getMiPerfil, updatePerfil, cancelAccount } from '../services/perfil.service';
 import { getSolicitudesRecibidas, changeSolicitudEstado } from '../services/solicitud.service';
+import { contactarPorWhatsApp } from '../services/messaging.service';
 import { logout } from '../services/auth.service';
 import { VerificationBadge } from './VerificationBadge';
 import { EtiquetasEditor } from './EtiquetasEditor';
@@ -31,8 +32,10 @@ interface SolicitudRecibida {
   clienteCorreo?: string;
   profesionalId: string;
   descripcion: string;
-  estado: 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
+  estado: 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA' | 'COMPLETADA';
   esUrgencia: boolean;
+  /** Teléfono del cliente para contacto vía WhatsApp (RF9/RF13) */
+  telefonoCliente?: string;
   fechaCreacion: string;
   fechaActualizacion: string;
 }
@@ -43,6 +46,133 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'portafolio', label: 'Portafolio', icon: <Folder size={16} /> },
   { id: 'solicitudes', label: 'Solicitudes', icon: <Mail size={16} /> },
 ];
+
+/* ─── Sub-componente: Botón de contacto WhatsApp ──────────────────────────
+   Aparece únicamente cuando la solicitud fue ACEPTADA.
+   Permite al profesional ingresar el número del cliente y enviarle
+   un mensaje inicial vía WhatsApp Cloud API (Server-to-Server, RF9/RF13).
+──────────────────────────────────────────────────────────────────────────── */
+function WhatsAppContactBtn({
+  clienteNombre,
+  descripcion,
+  telefonoPreLlenado,
+}: {
+  clienteNombre?: string;
+  descripcion: string;
+  telefonoPreLlenado?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [telefono, setTelefono] = useState(telefonoPreLlenado ?? '');
+  const [mensajeManual, setMensajeManual] = useState(`Hola${clienteNombre ? ` ${clienteNombre}` : ''}, soy el profesional que aceptó tu solicitud. "${descripcion.slice(0, 120)}". ¿Cuándo podemos coordinar los detalles?`);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handleSend = async () => {
+    let finalPhone = telefono.trim().replace(/\D/g, ''); // Extract only digits
+    if (finalPhone.length === 10) {
+      finalPhone = `52${finalPhone}`; // Default to Mexico country code if 10 digits
+    }
+
+    if (!finalPhone || finalPhone.length < 10) {
+      setErr('Ingresa un número válido de al menos 10 dígitos.');
+      return;
+    }
+
+    setSending(true);
+    setErr('');
+    try {
+      await contactarPorWhatsApp({
+        telefono: `+${finalPhone}`,
+        mensaje: mensajeManual.trim() || 'Hola, soy el profesional de CosasDeCasa.',
+      });
+      setSent(true);
+      setTelefono('');
+    } catch (error: any) {
+      console.error(error);
+      const msg = error?.response?.data?.message || 'No se pudo enviar. Verifica el número e inténtalo de nuevo.';
+      setErr(Array.isArray(msg) ? msg.join(', ') : msg);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button type="button" className={styles.whatsappBtn} onClick={() => setOpen(true)}>
+        <MessageCircle size={16} />
+        Contactar por WhatsApp
+      </button>
+    );
+  }
+
+  return (
+    <div style={{
+      marginTop: 4,
+      background: 'rgba(37,211,102,0.07)',
+      border: '1.5px solid rgba(37,211,102,0.25)',
+      borderRadius: 14,
+      padding: '14px 16px',
+      width: '100%',
+    }}>
+      {sent ? (
+        <p style={{ color: '#22c55e', fontWeight: 600, fontSize: '0.85rem', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <CheckCircle size={16} /> ¡Mensaje enviado por WhatsApp!
+        </p>
+      ) : (
+        <>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 8px', fontWeight: 500 }}>
+            Número de WhatsApp del cliente (ej. +524151234567)
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input
+              type="tel"
+              placeholder="+52 415 123 4567"
+              value={telefono}
+              onChange={(e) => { setTelefono(e.target.value); setErr(''); }}
+              style={{
+                flex: 1, minWidth: 160, padding: '9px 12px',
+                background: 'var(--surface)', border: '1.5px solid rgba(37,211,102,0.4)',
+                borderRadius: 10, color: 'var(--text-primary)', fontSize: '0.85rem',
+                fontFamily: 'inherit',
+              }}
+            />
+            <textarea
+              value={mensajeManual}
+              onChange={(e) => setMensajeManual(e.target.value)}
+              placeholder="Escribe aquí el mensaje inicial..."
+              rows={3}
+              style={{
+                width: '100%', padding: '9px 12px', marginTop: '4px',
+                background: 'var(--surface)', border: '1.5px solid rgba(37,211,102,0.4)',
+                borderRadius: 10, color: 'var(--text-primary)', fontSize: '0.85rem',
+                fontFamily: 'inherit', resize: 'vertical',
+              }}
+            />
+            <button
+              type="button"
+              disabled={sending}
+              className={styles.whatsappBtn}
+              style={{ padding: '9px 16px' }}
+              onClick={handleSend}
+            >
+              {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <MessageCircle size={15} />}
+              {sending ? 'Enviando...' : 'Enviar'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              style={{ padding: '9px 12px', background: 'none', border: '1.5px solid var(--border-color)', borderRadius: 10, color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.82rem' }}
+            >
+              Cancelar
+            </button>
+          </div>
+          {err && <p style={{ color: '#ef4444', fontSize: '0.78rem', margin: '6px 0 0' }}>{err}</p>}
+        </>
+      )}
+    </div>
+  );
+}
 
 export function PerfilProfesionalPage() {
   const { nombre } = useAuth();
@@ -57,9 +187,12 @@ export function PerfilProfesionalPage() {
   const [solicitudesLoading, setSolicitudesLoading] = useState(false);
   const [solicitudesLoaded, setSolicitudesLoaded] = useState(false);
   const [solicitudesError, setSolicitudesError] = useState<string | null>(null);
+  const [solicitudesTab, setSolicitudesTab] = useState<'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA' | 'COMPLETADA'>('PENDIENTE');
   const [solicitudActionLoading, setSolicitudActionLoading] = useState<Record<string, boolean>>({});
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isLoadingCancel, setIsLoadingCancel] = useState(false);
+  const [rejectingSolicitudId, setRejectingSolicitudId] = useState<string | null>(null);
+  const [motivoRechazo, setMotivoRechazo] = useState('');
 
   const [telefono, setTelefono] = useState('');
   const [biografia, setBiografia] = useState('');
@@ -130,7 +263,6 @@ export function PerfilProfesionalPage() {
     load();
   }, [activeTab, solicitudesLoaded]);
 
-
   const handleReset = () => {
     if (perfil) populateForm(perfil);
     setSaveError(null);
@@ -138,14 +270,19 @@ export function PerfilProfesionalPage() {
     setFieldErrors({});
   };
 
-  const handleEstadoSolicitud = async (solicitudId: string, estado: 'ACEPTADA' | 'RECHAZADA') => {
-    setSolicitudesError(null);
+  const handleEstadoSolicitud = async (solicitudId: string, estado: 'ACEPTADA' | 'RECHAZADA' | 'COMPLETADA', motivo?: string) => {
     setSolicitudActionLoading((prev) => ({ ...prev, [solicitudId]: true }));
     try {
-      const updated = await changeSolicitudEstado(solicitudId, estado);
-      setSolicitudes((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      const updated = await changeSolicitudEstado(solicitudId, estado, motivo);
+      setSolicitudes((prev) =>
+        prev.map((s) => (s.id === updated.id ? { ...s, estado: updated.estado } : s))
+      );
+      if (estado === 'RECHAZADA') {
+        setRejectingSolicitudId(null);
+        setMotivoRechazo('');
+      }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'No se pudo actualizar el estado de la solicitud';
+      const msg = err instanceof Error ? err.message : `Error al marcar como ${estado}`;
       setSolicitudesError(msg);
     } finally {
       setSolicitudActionLoading((prev) => ({ ...prev, [solicitudId]: false }));
@@ -561,9 +698,37 @@ export function PerfilProfesionalPage() {
                     <p>Los clientes pueden contactarte desde el catálogo y tu perfil público.</p>
                   </div>
                 ) : (
-                  <div className={styles.requestList}>
-                    {solicitudes.map((solicitud) => (
-                      <article key={solicitud.id} className={styles.requestCard}>
+                  <>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                      {(['PENDIENTE', 'ACEPTADA', 'RECHAZADA', 'COMPLETADA'] as const).map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => setSolicitudesTab(tab)}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: solicitudesTab === tab ? 'var(--accent)' : 'var(--surface)',
+                            color: solicitudesTab === tab ? '#fff' : 'var(--text-muted)',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          {tab === 'COMPLETADA' ? 'Atendida' : tab.charAt(0) + tab.slice(1).toLowerCase()}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {solicitudes.filter(s => s.estado === solicitudesTab).length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <p>No tienes solicitudes {solicitudesTab.toLowerCase()}s.</p>
+                      </div>
+                    ) : (
+                      <div className={styles.requestList}>
+                        {solicitudes.filter(s => s.estado === solicitudesTab).map((solicitud) => (
+                          <article key={solicitud.id} className={styles.requestCard}>
                         <div className={styles.requestHeader}>
                           <div>
                             <strong>Solicitud #{solicitud.id.slice(0, 8)}</strong>
@@ -580,6 +745,7 @@ export function PerfilProfesionalPage() {
                           {sanitizeText(solicitud.descripcion || 'Sin descripción adicional')}
                         </p>
                         <div className={styles.requestActions}>
+                          {/* Botones Aceptar/Rechazar — solo si la solicitud está pendiente */}
                           <button
                             type="button"
                             disabled={solicitud.estado !== 'PENDIENTE' || solicitudActionLoading[solicitud.id]}
@@ -592,16 +758,50 @@ export function PerfilProfesionalPage() {
                             type="button"
                             disabled={solicitud.estado !== 'PENDIENTE' || solicitudActionLoading[solicitud.id]}
                             className={`${styles.requestActionBtn} ${styles.requestRejectBtn}`}
-                            onClick={() => handleEstadoSolicitud(solicitud.id, 'RECHAZADA')}
+                            onClick={() => {
+                              setRejectingSolicitudId(solicitud.id);
+                              setMotivoRechazo('');
+                            }}
                           >
                             {solicitudActionLoading[solicitud.id] ? 'Procesando...' : 'Rechazar'}
                           </button>
+
+                          {/* Botón WhatsApp — solo visible cuando la solicitud está ACEPTADA */}
+                          {solicitud.estado === 'ACEPTADA' && (
+                            <>
+                              <button
+                                type="button"
+                                disabled={solicitudActionLoading[solicitud.id]}
+                                style={{
+                                  background: '#fef3c7', /* creamy yellow */
+                                  color: '#92400e', /* dark amber text */
+                                  border: '1.5px solid #fde68a',
+                                  padding: '8px 16px',
+                                  borderRadius: '20px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  marginRight: '8px',
+                                }}
+                                onClick={() => handleEstadoSolicitud(solicitud.id, 'COMPLETADA')}
+                              >
+                                {solicitudActionLoading[solicitud.id] ? 'Marcando...' : 'Marcar como Atendida'}
+                              </button>
+                              <WhatsAppContactBtn
+                                clienteNombre={solicitud.clienteNombre}
+                                descripcion={solicitud.descripcion}
+                                telefonoPreLlenado={solicitud.telefonoCliente}
+                              />
+                            </>
+                          )}
                         </div>
                       </article>
                     ))}
                   </div>
                 )}
-              </div>
+              </>
+            )}
+          </div>
             </div>
           </div>
         )}
@@ -644,6 +844,57 @@ export function PerfilProfesionalPage() {
           onConfirm={handleCancelAccount}
           isLoading={isLoadingCancel}
         />
+      )}
+
+      {rejectingSolicitudId && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: 'var(--surface)', padding: '24px', borderRadius: '16px',
+            width: '90%', maxWidth: '400px',
+          }}>
+            <h3 style={{ margin: '0 0 16px', color: 'var(--text-primary)' }}>Motivo del rechazo</h3>
+            <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Escribe brevemente por qué rechazas la solicitud. El cliente podrá ver esto.
+            </p>
+            <textarea
+              value={motivoRechazo}
+              onChange={e => setMotivoRechazo(e.target.value)}
+              placeholder="Ej. No tengo disponibilidad en esa fecha..."
+              rows={4}
+              style={{
+                width: '100%', padding: '12px', border: '1.5px solid var(--border-color)',
+                borderRadius: '10px', fontSize: '0.85rem', resize: 'vertical',
+                background: 'var(--bg-body)', color: 'var(--text-primary)', marginBottom: '16px'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setRejectingSolicitudId(null)}
+                style={{
+                  padding: '10px 16px', background: 'none', border: '1.5px solid var(--border-color)',
+                  borderRadius: '10px', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 600,
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleEstadoSolicitud(rejectingSolicitudId, 'RECHAZADA', motivoRechazo)}
+                style={{
+                  padding: '10px 16px', background: '#ef4444', border: 'none',
+                  borderRadius: '10px', color: '#fff', cursor: 'pointer', fontWeight: 600,
+                }}
+              >
+                Confirmar Rechazo
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

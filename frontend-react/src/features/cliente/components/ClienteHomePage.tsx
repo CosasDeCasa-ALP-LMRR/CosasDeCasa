@@ -5,12 +5,12 @@ import {
   Trash2
 } from 'lucide-react';
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
-import { createSolicitud } from '../../auth-profile/services/solicitud.service';
 import styles from './ClienteHomePage.module.css';
 import { cancelAccount } from '../../auth-profile/services/perfil.service';
 import { CancelAccountModal } from '../../auth-profile/components/CancelAccountModal';
 import { logout } from '../../auth-profile/services/auth.service';
 import { searchProfesionales } from '../../search-review/services/search.service';
+import { SolicitudModal } from './SolicitudModal';
 import type { ProfesionalCard } from '../../auth-profile/types/perfil.types';
 
 const CATEGORIAS = [
@@ -42,6 +42,9 @@ export function ClienteHomePage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isLoadingCancel, setIsLoadingCancel] = useState(false);
 
+  // Estado para el modal de solicitud
+  const [selectedProfesional, setSelectedProfesional] = useState<ProfesionalCard | null>(null);
+
   useEffect(() => {
     setLoading(true);
     const delayDebounceFn = setTimeout(() => {
@@ -62,18 +65,8 @@ export function ClienteHomePage() {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const handleContact = async (perfilId: string) => {
-    try {
-      await createSolicitud({
-        profesionalId: perfilId,
-        descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
-        esUrgencia: false,
-      });
-      alert('Solicitud enviada correctamente.');
-    } catch (err: unknown) {
-      console.error(err);
-      alert('No se pudo crear la solicitud. Asegúrate de estar autenticado como cliente y vuelve a intentar.');
-    }
+  const handleContact = (prof: ProfesionalCard) => {
+    setSelectedProfesional(prof);
   };
 
   const handleCancelAccount = async (justificacion: string) => {
@@ -304,7 +297,7 @@ export function ClienteHomePage() {
                       className={styles.contactBtn}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleContact(prof.id);
+                        handleContact(prof);
                       }}
                     >
                       Contactar
@@ -354,6 +347,13 @@ export function ClienteHomePage() {
           onClose={() => setIsCancelModalOpen(false)}
           onConfirm={handleCancelAccount}
           isLoading={isLoadingCancel}
+        />
+      )}
+
+      {selectedProfesional && (
+        <SolicitudModal
+          profesional={selectedProfesional}
+          onClose={() => setSelectedProfesional(null)}
         />
       )}
 

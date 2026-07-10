@@ -43,6 +43,7 @@ export interface DocumentoPublico {
  */
 export interface ProfesionalCard {
   id: string;
+  usuarioId?: string; // Hacemos opcional temporalmente por seguridad
   nombre: string;
   fotoPerfil: string | null;
   categoriaPrincipal: string | null;

@@ -7,8 +7,10 @@ export interface Solicitud {
   clienteCorreo?: string;
   profesionalId: string;
   descripcion: string;
-  estado: 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA';
+  estado: 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA' | 'COMPLETADA';
   esUrgencia: boolean;
+  /** Teléfono del cliente para contacto vía WhatsApp (RF9/RF13) */
+  telefonoCliente?: string;
   fechaCreacion: string;
   fechaActualizacion: string;
 }
@@ -20,11 +22,16 @@ export async function getSolicitudesRecibidas(): Promise<Solicitud[]> {
 
 export async function changeSolicitudEstado(
   solicitudId: string,
-  estado: 'ACEPTADA' | 'RECHAZADA',
+  estado: 'ACEPTADA' | 'RECHAZADA' | 'COMPLETADA',
+  motivoRechazo?: string,
 ): Promise<Solicitud> {
+  const payload: any = { estado };
+  if (motivoRechazo) {
+    payload.motivoRechazo = motivoRechazo;
+  }
   const { data } = await api.patch<Solicitud>(
     `/match/solicitudes/${solicitudId}/estado`,
-    { estado },
+    payload,
   );
   return data;
 }
@@ -33,6 +40,8 @@ export interface CreateSolicitudPayload {
   profesionalId: string;
   descripcion?: string;
   esUrgencia?: boolean;
+  /** Número de teléfono del cliente en formato internacional */
+  telefonoCliente?: string;
 }
 
 export async function createSolicitud(

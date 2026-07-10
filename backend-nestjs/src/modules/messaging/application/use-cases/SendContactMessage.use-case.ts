@@ -28,12 +28,9 @@ export class SendContactMessageUseCase {
   async execute(input: SendContactMessageInput): Promise<void> {
     const { telefonoProfesionista, nombreCliente, mensaje } = input;
 
-    // Construimos el mensaje formateado con el nombre del cliente
-    const mensajeFormateado = `📲 *CosasDeCasa* — Nuevo contacto\n\n*Cliente:* ${nombreCliente}\n\n*Mensaje:* ${mensaje}`;
-
     await this.whatsAppGateway.sendTextMessage({
       destinatario: telefonoProfesionista,
-      mensaje: mensajeFormateado,
+      mensaje: mensaje,
     });
   }
 }

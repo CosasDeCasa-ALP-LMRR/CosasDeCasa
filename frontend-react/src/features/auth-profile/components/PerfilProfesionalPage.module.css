@@ -547,6 +547,33 @@
   color: #b91c1c;
   background: rgba(239, 68, 68, 0.12);
 }
+
+.whatsappBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  background: #25d366;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.25);
+  text-decoration: none;
+}
+
+.whatsappBtn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(37, 211, 102, 0.35);
+}
+
+.whatsappBtn svg {
+  flex-shrink: 0;
+}
 /* ── Section cards ──────────────────────────────────────────────────────── */
 .sectionCard {
   background: var(--surface-1);

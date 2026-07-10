@@ -8,7 +8,7 @@
  * minimización de datos antes de retransmitirlos a la API de Meta/WhatsApp.
  */
 
-import { IsString, IsPhoneNumber, MaxLength, MinLength } from 'class-validator';
+import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class ContactarProfesionalDto {
   /**
@@ -16,7 +16,9 @@ export class ContactarProfesionalDto {
    * La validación asegura que solo se retransmitan números con formato válido.
    */
   @IsString()
-  @IsPhoneNumber()
+  @Matches(/^\+?[1-9]\d{6,14}$/, {
+    message: 'El teléfono debe ser un número válido en formato internacional',
+  })
   telefono: string;
 
   /**

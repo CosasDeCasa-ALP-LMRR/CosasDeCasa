@@ -146,6 +146,10 @@ model Solicitud {
   estado           EstadoSolicitud @default(PENDIENTE)
   descripcion      String          @db.Text
   esUrgencia       Boolean         @default(false)
+  // Teléfono que el cliente proporciona al enviar la solicitud (RF9/RF13)
+  telefonoCliente  String?         @db.VarChar(20)
+  // Motivo opcional proporcionado por el profesional al rechazar la solicitud
+  motivoRechazo    String?         @db.Text
   
   fechaCreacion    DateTime        @default(now())
   fechaActualizacion DateTime      @updatedAt
