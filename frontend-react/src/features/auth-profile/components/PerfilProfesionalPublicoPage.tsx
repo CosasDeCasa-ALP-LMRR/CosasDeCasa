@@ -16,7 +16,8 @@ import { createSolicitud } from '../services/solicitud.service';
 import { obtenerResenas, crearResena } from '../../search-review/services/review.service';
 import { useAuth } from '../../../context/AuthContext';
 import styles from './PerfilProfesionalPublicoPage.module.css';
-import type { PerfilPublico } from '../types/perfil.types';
+import type { PerfilPublico, ProfesionalCard } from '../types/perfil.types';
+import { SolicitudModal } from '../../cliente/components/SolicitudModal';
 import type { Resena } from '../../search-review/services/review.service';
 
 // PerfilPublico type is imported from perfil.types.ts — matches PerfilPublicoResponseDto from backend
@@ -59,6 +60,7 @@ export function PerfilProfesionalPublicoPage() {
   const [error, setError] = useState<string | null>(null);
   const [imgError, setImgError] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Auth
   const { role } = useAuth();
@@ -235,19 +237,7 @@ export function PerfilProfesionalPublicoPage() {
             <button
               type="button"
               className={styles.contactBtn}
-              onClick={async () => {
-                try {
-                  await createSolicitud({
-                    profesionalId: perfil.usuarioId,
-                    descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
-                    esUrgencia: false,
-                  });
-                  showToast('Solicitud enviada correctamente. El profesional se pondrá en contacto pronto.', 'success');
-                } catch (err: unknown) {
-                  console.error(err);
-                  showToast('No se pudo crear la solicitud. Inicia sesión como cliente y vuelve a intentar.', 'error');
-                }
-              }}
+              onClick={() => setIsModalOpen(true)}
             >
               <Mail size={15} />
               Contactar
@@ -464,6 +454,25 @@ export function PerfilProfesionalPublicoPage() {
             <span>{toast.message}</span>
           </div>
         </div>
+      )}
+
+      {/* ── Solicitud Modal ── */}
+      {isModalOpen && perfil && (
+        <SolicitudModal
+          profesional={{
+            id: perfil.id,
+            usuarioId: perfil.usuarioId,
+            nombre: perfil.nombre,
+            fotoPerfil: perfil.fotoPerfil,
+            categoriaPrincipal: perfil.categoriaPrincipal,
+            etiquetas: perfil.etiquetas,
+            promedioCalificacion: perfil.promedioCalificacion,
+            estadoVerificacion: 'APROBADO', // We default it for public profiles
+            aceptaUrgencias: perfil.aceptaUrgencias,
+            cantidadResenas: 0,
+          }}
+          onClose={() => setIsModalOpen(false)}
+        />
       )}
     </div>
   );

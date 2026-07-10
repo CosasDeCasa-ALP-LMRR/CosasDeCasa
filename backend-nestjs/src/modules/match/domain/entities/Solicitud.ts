@@ -16,5 +16,6 @@ export class Solicitud {
     public readonly fechaActualizacion: Date,
     public readonly clienteNombre?: string,
     public readonly clienteCorreo?: string,
+    public readonly telefonoCliente?: string,
   ) {}
 }

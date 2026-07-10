@@ -53,6 +53,7 @@ export class SearchService {
       where: filters,
       select: {
         id: true,
+        usuarioId: true,
         categoriaPrincipal: true,
         etiquetas: true,
         promedioCalificacion: true,
@@ -75,6 +76,7 @@ export class SearchService {
       (p) =>
         new ProfesionalCardResponseDto({
           id: p.id,
+          usuarioId: p.usuarioId,
           nombre: p.usuario.nombre,
           fotoPerfil: p.usuario.fotoPerfil ?? null,
           categoriaPrincipal: p.categoriaPrincipal,

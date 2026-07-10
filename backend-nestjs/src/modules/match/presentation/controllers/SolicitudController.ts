@@ -38,12 +38,10 @@ export class SolicitudController {
     return await this.createSolicitudUseCase.execute(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       req.user.id,
-
       dto.profesionalId,
-
       dto.descripcion ?? '',
-
       dto.esUrgencia ?? false,
+      dto.telefonoCliente,
     );
   }
 
@@ -68,6 +66,7 @@ export class SolicitudController {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       req.user.id,
       dto.estado,
+      dto.motivoRechazo,
     );
   }
 }
