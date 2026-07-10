@@ -853,8 +853,9 @@ export function PerfilProfesionalPage() {
           zIndex: 9999,
         }}>
           <div style={{
-            background: 'var(--surface)', padding: '24px', borderRadius: '16px',
+            backgroundColor: '#ffffff', padding: '24px', borderRadius: '16px',
             width: '90%', maxWidth: '400px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
           }}>
             <h3 style={{ margin: '0 0 16px', color: 'var(--text-primary)' }}>Motivo del rechazo</h3>
             <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
