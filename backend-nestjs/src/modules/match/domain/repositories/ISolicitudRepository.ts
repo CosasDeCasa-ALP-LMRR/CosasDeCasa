@@ -14,6 +14,7 @@ export abstract class ISolicitudRepository {
     profesionalId: string;
     descripcion: string;
     esUrgencia: boolean;
+    telefonoCliente?: string;
   }): Promise<Solicitud>;
-  abstract updateEstado(id: string, estado: string): Promise<Solicitud>;
+  abstract updateEstado(id: string, estado: string, motivoRechazo?: string): Promise<Solicitud>;
 }

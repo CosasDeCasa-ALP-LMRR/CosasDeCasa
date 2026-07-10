@@ -20,6 +20,7 @@ export class ChangeSolicitudEstadoUseCase {
     solicitudId: string,
     profesionalId: string,
     nuevoEstado: string,
+    motivoRechazo?: string,
   ) {
     const solicitud = await this.solicitudRepository.findById(solicitudId);
     if (!solicitud) {
@@ -34,15 +35,23 @@ export class ChangeSolicitudEstadoUseCase {
       );
     }
 
-    if (solicitud.estado !== 'PENDIENTE') {
+    // Validate allowed transitions
+    const validTransitions: Record<string, string[]> = {
+      'PENDIENTE': ['ACEPTADA', 'RECHAZADA'],
+      'ACEPTADA': ['COMPLETADA'],
+    };
+
+    const allowed = validTransitions[solicitud.estado];
+    if (!allowed || !allowed.includes(nuevoEstado)) {
       throw new BadRequestException(
-        'Solo se puede cambiar el estado de solicitudes pendientes',
+        `No se puede cambiar el estado de ${solicitud.estado} a ${nuevoEstado}`,
       );
     }
 
     return await this.solicitudRepository.updateEstado(
       solicitudId,
       nuevoEstado,
+      motivoRechazo,
     );
   }
 }

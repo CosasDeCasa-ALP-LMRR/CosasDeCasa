@@ -28,6 +28,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/search': {
+        target: 'https://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/messaging': {
+        target: 'https://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
       '/uploads': {
         target: 'https://localhost:3000',
         changeOrigin: true,

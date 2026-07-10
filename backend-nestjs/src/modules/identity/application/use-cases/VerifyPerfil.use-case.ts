@@ -32,7 +32,7 @@ export class VerifyPerfilUseCase {
       estadoVerificacion: nuevoEstado,
     });
 
-    if (nuevoEstado === 'RECHAZADO') {
+    if (nuevoEstado === 'RECHAZADO' || nuevoEstado === 'APROBADO') {
       const documentos = await this.documentoRepository.findByPerfilId(perfilId);
       for (const doc of documentos) {
         if (doc.tipo === 'INE' || doc.tipo === 'CEDULA') {

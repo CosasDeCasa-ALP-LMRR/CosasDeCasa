@@ -13,6 +13,7 @@
 export class ProfesionalCardResponseDto {
   /** ID público del Perfil — suficiente para navegar al detalle */
   id: string;
+  usuarioId: string;
   nombre: string;
   fotoPerfil: string | null;
   categoriaPrincipal: string | null;
@@ -24,6 +25,7 @@ export class ProfesionalCardResponseDto {
 
   constructor(data: {
     id: string;
+    usuarioId: string;
     nombre: string;
     fotoPerfil: string | null;
     categoriaPrincipal: string | null;
@@ -34,6 +36,7 @@ export class ProfesionalCardResponseDto {
     estadoRep: string | null;
   }) {
     this.id = data.id;
+    this.usuarioId = data.usuarioId;
     this.nombre = data.nombre;
     this.fotoPerfil = data.fotoPerfil;
     this.categoriaPrincipal = data.categoriaPrincipal;

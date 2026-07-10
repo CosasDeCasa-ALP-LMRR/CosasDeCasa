@@ -7,6 +7,7 @@ import { GetSolicitudesRecibidasUseCase } from './application/use-cases/GetSolic
 import { ChangeSolicitudEstadoUseCase } from './application/use-cases/ChangeSolicitudEstado.use-case';
 import { CreateSolicitudUseCase } from './application/use-cases/CreateSolicitud.use-case';
 import { SolicitudController } from './presentation/controllers/SolicitudController';
+import { SolicitudCronService } from './application/services/solicitud-cron.service';
 
 @Module({
   imports: [PrismaModule, IdentityModule],
@@ -16,6 +17,7 @@ import { SolicitudController } from './presentation/controllers/SolicitudControl
     GetSolicitudesRecibidasUseCase,
     ChangeSolicitudEstadoUseCase,
     CreateSolicitudUseCase,
+    SolicitudCronService,
   ],
   exports: [ISolicitudRepository],
 })

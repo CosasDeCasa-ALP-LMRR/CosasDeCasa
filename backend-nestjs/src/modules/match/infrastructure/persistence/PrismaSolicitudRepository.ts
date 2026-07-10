@@ -33,6 +33,7 @@ export class PrismaSolicitudRepository implements ISolicitudRepository {
       prismaSolicitud.fechaActualizacion,
       prismaSolicitud.cliente?.nombre,
       prismaSolicitud.cliente?.correo,
+      prismaSolicitud.telefonoCliente ?? undefined,
     );
   }
 
@@ -57,6 +58,7 @@ export class PrismaSolicitudRepository implements ISolicitudRepository {
     profesionalId: string;
     descripcion: string;
     esUrgencia: boolean;
+    telefonoCliente?: string;
   }): Promise<DomainSolicitud> {
     const prismaSolicitud = await this.prismaService.solicitud.create({
       data: {
@@ -65,6 +67,7 @@ export class PrismaSolicitudRepository implements ISolicitudRepository {
         descripcion: data.descripcion,
         esUrgencia: data.esUrgencia,
         estado: 'PENDIENTE',
+        telefonoCliente: data.telefonoCliente ?? null,
       },
     });
     return this.mapToDomain(prismaSolicitud);
@@ -86,11 +89,14 @@ export class PrismaSolicitudRepository implements ISolicitudRepository {
     return solicitudes.map((solicitud) => this.mapToDomain(solicitud));
   }
 
-  async updateEstado(id: string, estado: string): Promise<DomainSolicitud> {
+  async updateEstado(id: string, estado: string, motivoRechazo?: string): Promise<DomainSolicitud> {
+    const dataToUpdate: any = { estado: estado as any };
+    if (motivoRechazo) {
+      dataToUpdate.motivoRechazo = motivoRechazo;
+    }
     const prismaSolicitud = await this.prismaService.solicitud.update({
       where: { id },
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      data: { estado: estado as any },
+      data: dataToUpdate,
       include: {
         cliente: {
           select: {

@@ -5,13 +5,13 @@ import {
   Trash2
 } from 'lucide-react';
 import { sanitizeText, isSuspiciousText } from '../../../context/sanitize';
-import { createSolicitud } from '../../auth-profile/services/solicitud.service';
 import styles from './ClienteHomePage.module.css';
-import { cancelAccount, getProfesionales } from '../../auth-profile/services/perfil.service';
+import { cancelAccount } from '../../auth-profile/services/perfil.service';
 import { CancelAccountModal } from '../../auth-profile/components/CancelAccountModal';
 import { logout } from '../../auth-profile/services/auth.service';
+import { searchProfesionales } from '../../search-review/services/search.service';
+import { SolicitudModal } from './SolicitudModal';
 import type { ProfesionalCard } from '../../auth-profile/types/perfil.types';
-
 
 const CATEGORIAS = [
   { label: 'Plomería', icon: <Droplets size={20} /> },
@@ -42,44 +42,31 @@ export function ClienteHomePage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isLoadingCancel, setIsLoadingCancel] = useState(false);
 
+  // Estado para el modal de solicitud
+  const [selectedProfesional, setSelectedProfesional] = useState<ProfesionalCard | null>(null);
+
   useEffect(() => {
-    getProfesionales()
-      .then(setProfesionales)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    const delayDebounceFn = setTimeout(() => {
+      searchProfesionales({
+        q: searchTerm || undefined,
+        category: categoriaActiva || undefined,
+      })
+        .then((data) => setProfesionales(Array.isArray(data) ? data : []))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    }, 400);
 
-  const filtrados = profesionales.filter((p) => {
-    const termMatch =
-      !searchTerm ||
-      p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.categoriaPrincipal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.etiquetas.some((e) => e.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const catMatch =
-      !categoriaActiva ||
-      p.categoriaPrincipal?.toLowerCase().includes(categoriaActiva.toLowerCase());
-
-    return termMatch && catMatch;
-  });
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, categoriaActiva]);
 
   const handleVerPerfil = (id: string) => {
     window.history.pushState({}, '', `/perfil/${id}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const handleContact = async (perfilId: string) => {
-    try {
-      await createSolicitud({
-        profesionalId: perfilId,
-        descripcion: 'El cliente ha enviado una solicitud desde CosasDeCasa.',
-        esUrgencia: false,
-      });
-      alert('Solicitud enviada correctamente.');
-    } catch (err: unknown) {
-      console.error(err);
-      alert('No se pudo crear la solicitud. Asegúrate de estar autenticado como cliente y vuelve a intentar.');
-    }
+  const handleContact = (prof: ProfesionalCard) => {
+    setSelectedProfesional(prof);
   };
 
   const handleCancelAccount = async (justificacion: string) => {
@@ -97,14 +84,6 @@ export function ClienteHomePage() {
       setIsLoadingCancel(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className={styles.center}>
-        <Loader2 size={32} className="spinner" />
-      </div>
-    );
-  }
 
   return (
     <div className={styles.page}>
@@ -226,17 +205,21 @@ export function ClienteHomePage() {
               : 'Profesionales destacados'}
           </h2>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            {filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''}
+            {profesionales.length} resultado{profesionales.length !== 1 ? 's' : ''}
           </span>
         </div>
 
         <div className={styles.grid}>
-          {filtrados.length === 0 ? (
+          {loading ? (
+            <div className={styles.center} style={{ gridColumn: '1 / -1', padding: '40px' }}>
+              <Loader2 size={32} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />
+            </div>
+          ) : (!Array.isArray(profesionales) || profesionales.length === 0) ? (
             <div className={styles.empty}>
               No se encontraron profesionales con esa búsqueda.
             </div>
           ) : (
-            filtrados.map((prof) => (
+            profesionales.map((prof) => (
               <article
                 key={prof.id}
                 className={styles.card}
@@ -314,7 +297,7 @@ export function ClienteHomePage() {
                       className={styles.contactBtn}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleContact(prof.id);
+                        handleContact(prof);
                       }}
                     >
                       Contactar
@@ -364,6 +347,13 @@ export function ClienteHomePage() {
           onClose={() => setIsCancelModalOpen(false)}
           onConfirm={handleCancelAccount}
           isLoading={isLoadingCancel}
+        />
+      )}
+
+      {selectedProfesional && (
+        <SolicitudModal
+          profesional={selectedProfesional}
+          onClose={() => setSelectedProfesional(null)}
         />
       )}
 

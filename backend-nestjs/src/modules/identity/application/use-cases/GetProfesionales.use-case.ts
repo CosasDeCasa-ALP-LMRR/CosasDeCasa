@@ -24,6 +24,7 @@ export class GetProfesionalesUseCase {
       // select estricto: solo columnas necesarias para las tarjetas de la UI
       select: {
         id: true,
+        usuarioId: true,
         categoriaPrincipal: true,
         etiquetas: true,
         promedioCalificacion: true,
@@ -49,6 +50,7 @@ export class GetProfesionalesUseCase {
       (p) =>
         new ProfesionalCardResponseDto({
           id: p.id,
+          usuarioId: p.usuarioId,
           nombre: p.usuario.nombre,
           fotoPerfil: p.usuario.fotoPerfil ?? null,
           categoriaPrincipal: p.categoriaPrincipal,

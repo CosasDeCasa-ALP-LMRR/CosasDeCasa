@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './database/prisma.module';
@@ -14,12 +15,14 @@ import { MessagingModule } from './modules/messaging/messaging.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './logger/winston.config';
 import { AntiInjectionMiddleware } from './common/middlewares/anti-injection.middleware';
+import { XssMiddleware } from './common/middlewares/xss.middleware';
 
 @Module({
   imports: [
     //RNF3
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     WinstonModule.forRoot(winstonConfig),
     EventEmitterModule.forRoot(),
     PrismaModule,
@@ -34,6 +37,6 @@ import { AntiInjectionMiddleware } from './common/middlewares/anti-injection.mid
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AntiInjectionMiddleware).forRoutes('*');
+    consumer.apply(XssMiddleware, AntiInjectionMiddleware).forRoutes('*');
   }
 }
