@@ -33,8 +33,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { httpsOptions });
   
   app.enableCors({
-    origin: true, // Permite cualquier origen temporalmente para la revisión
-    credentials: true,
+    origin: [
+      'https://cosasdecasa.vercel.app', // Frontend en Vercel (producción)
+      'https://localhost:5173',          // Frontend local (desarrollo con HTTPS)
+      'http://localhost:5173',           // Frontend local (desarrollo sin HTTPS)
+    ],
+    credentials: true, // Requerido para enviar cookies HttpOnly (JWT)
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   // Seguridad: Prevenir Clickjacking, Inyección, aislar orígenes y forzar tipos
