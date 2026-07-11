@@ -59,8 +59,9 @@ async function bootstrap() {
         },
       },
       xContentTypeOptions: true, 
-      crossOriginOpenerPolicy: { policy: 'same-origin' },
-      crossOriginEmbedderPolicy: { policy: 'require-corp' },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'unsafe-none' },
+      crossOriginEmbedderPolicy: false,
       frameguard: { action: 'deny' }, 
     }),
   );
