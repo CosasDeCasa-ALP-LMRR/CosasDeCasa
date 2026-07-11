@@ -14,16 +14,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { IJwtAdapter } from '../../domain/adapters/IJwtAdapter';
+import { AuthenticatedRequest } from '../../../../common/types/authenticated-request.interface';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     @Inject(IJwtAdapter)
     private readonly jwtAdapter: IJwtAdapter,
-  ) {}
+  ) { }
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token: string | undefined = request.cookies?.['access_token'];
 
     if (!token) {
