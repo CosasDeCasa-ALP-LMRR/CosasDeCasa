@@ -32,6 +32,11 @@ async function bootstrap() {
   const httpsOptions = await getHttpsOptions();
   const app = await NestFactory.create(AppModule, { httpsOptions });
   
+  app.enableCors({
+    origin: true, // Permite cualquier origen temporalmente para la revisión
+    credentials: true,
+  });
+
   // Seguridad: Prevenir Clickjacking, Inyección, aislar orígenes y forzar tipos
   app.use(
     helmet({
