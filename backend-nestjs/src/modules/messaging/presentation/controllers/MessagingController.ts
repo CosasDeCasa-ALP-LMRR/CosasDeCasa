@@ -20,6 +20,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import type { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: { id: string; role?: string; nombre?: string };
+}
 import { JwtAuthGuard } from '../../../identity/presentation/guards/jwt-auth.guard';
 import { SendContactMessageUseCase } from '../../application/use-cases/SendContactMessage.use-case';
 import { ContactarProfesionalDto } from '../dtos/ContactarProfesional.dto';
@@ -45,7 +50,7 @@ export class MessagingController {
   @HttpCode(HttpStatus.OK)
   async contactarProfesional(
     @Body() dto: ContactarProfesionalDto,
-    @Req() req: any,
+    @Req() req: RequestWithUser,
   ) {
     const nombreCliente: string = req.user?.nombre ?? 'Un cliente';
 

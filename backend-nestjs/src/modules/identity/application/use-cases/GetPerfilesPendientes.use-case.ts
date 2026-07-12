@@ -34,7 +34,7 @@ export class GetPerfilesPendientesUseCase {
         usuario: {
           select: {
             nombre: true,
-            correo: true,   // El auditor necesita el correo para contactar al profesional
+            correo: true, // El auditor necesita el correo para contactar al profesional
             fotoPerfil: true,
             // passwordHash, activo, rol, fechaCreacion — EXCLUIDOS
           },

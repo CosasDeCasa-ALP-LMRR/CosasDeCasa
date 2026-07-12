@@ -6,11 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma.service';
+import { AuthenticatedRequest } from '../../../../common/types/authenticated-request.interface';
 
 /**
  * @fileoverview Guard personalizado para prevenir vulnerabilidades BOLA (Broken Object Level Authorization).
  * Verifica en la capa de seguridad (antes del controlador) que el documento solicitado
- * realmente pertenezca al usuario autenticado. 
+ * realmente pertenezca al usuario autenticado.
  * Esto abstrae la seguridad y evita errores humanos de olvido en los Casos de Uso.
  */
 @Injectable()
@@ -18,9 +19,9 @@ export class DocumentoOwnerGuard implements CanActivate {
   constructor(private prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const usuarioId = request.user?.id;
-    const documentoId = request.params?.documentoId;
+    const documentoId = request.params?.documentoId as string | undefined;
 
     if (!usuarioId || !documentoId) {
       // Si no hay sesión o no se solicita un documento específico, no aplica.
@@ -42,7 +43,9 @@ export class DocumentoOwnerGuard implements CanActivate {
     });
 
     if (!documento) {
-      throw new NotFoundException(`Documento con ID ${documentoId} no encontrado.`);
+      throw new NotFoundException(
+        `Documento con ID ${documentoId} no encontrado.`,
+      );
     }
 
     // PREVENCIÓN DE BOLA

@@ -33,7 +33,7 @@ export class JwtAdapter implements IJwtAdapter {
       secret:
         process.env.JWT_REFRESH_SECRET ??
         'refresh-secret-cambiar-en-produccion',
-      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ?? '30d') as any,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
     });
   }
 

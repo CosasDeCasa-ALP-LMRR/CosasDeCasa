@@ -20,16 +20,20 @@ export class SolicitudCronService {
    */
   @Cron(CronExpression.EVERY_WEEK)
   async limpiarSolicitudesRechazadas() {
-    this.logger.log('Iniciando tarea programada: limpieza de solicitudes rechazadas...');
-    
+    this.logger.log(
+      'Iniciando tarea programada: limpieza de solicitudes rechazadas...',
+    );
+
     try {
       const result = await this.prisma.solicitud.deleteMany({
         where: {
           estado: 'RECHAZADA',
         },
       });
-      
-      this.logger.log(`Limpieza completada. Solicitudes eliminadas: ${result.count}`);
+
+      this.logger.log(
+        `Limpieza completada. Solicitudes eliminadas: ${result.count}`,
+      );
     } catch (error) {
       this.logger.error('Error al limpiar solicitudes rechazadas', error);
     }

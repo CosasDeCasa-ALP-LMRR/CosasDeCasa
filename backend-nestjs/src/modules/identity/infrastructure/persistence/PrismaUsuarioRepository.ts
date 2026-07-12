@@ -9,7 +9,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma.service';
 import { IUsuarioRepository } from '../../domain/repositories/IUsuarioRepository';
 import { Usuario } from '../../domain/entities/Usuario';
-import { Usuario as PrismaUsuario } from '@prisma/client';
+import { Usuario as PrismaUsuario, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaUsuarioRepository implements IUsuarioRepository {
@@ -51,6 +51,7 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
         nombre: usuario.nombre,
         correo: usuario.correo,
         passwordHash: usuario.passwordHash,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         rol: usuario.rol as any,
         activo: usuario.activo,
         curp: usuario.curp,
@@ -60,8 +61,9 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
   }
 
   async update(id: string, data: Partial<Usuario>): Promise<Usuario> {
-    const prismaData: any = { ...data };
+    const prismaData: Prisma.UsuarioUpdateInput = { ...data };
     if (data.rol) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       prismaData.rol = data.rol as any;
     }
     const prismaUsuario = await this.prismaService.usuario.update({

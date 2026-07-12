@@ -15,7 +15,10 @@ export class GeminiOcrAdapter implements IOcrAdapter {
     }
   }
 
-  async extractIdentityData(fileBuffer: Buffer, mimeType: string): Promise<OcrResult> {
+  async extractIdentityData(
+    fileBuffer: Buffer,
+    mimeType: string,
+  ): Promise<OcrResult> {
     const prompt = `
       Eres un asistente de validación de identidad estricto. 
       Por favor, analiza la siguiente imagen de una identificación oficial (INE o Cédula Profesional Mexicana).
@@ -29,7 +32,9 @@ export class GeminiOcrAdapter implements IOcrAdapter {
     `;
 
     try {
-      this.logger.log('Enviando petición HTTP directa al endpoint de Gemini...');
+      this.logger.log(
+        'Enviando petición HTTP directa al endpoint de Gemini...',
+      );
 
       const response = await fetch(`${this.ENDPOINT}?key=${this.apiKey}`, {
         method: 'POST',
@@ -53,35 +58,49 @@ export class GeminiOcrAdapter implements IOcrAdapter {
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as Record<string, unknown>;
 
       if (!response.ok) {
-        this.logger.error('Error del servidor de Google:', JSON.stringify(data, null, 2));
-        throw new Error(`Google API respondió con status ${response.status}: ${data.error?.message || 'Error desconocido'}`);
+        const errorData = data.error as Record<string, unknown> | undefined;
+        this.logger.error(
+          'Error del servidor de Google:',
+          JSON.stringify(data, null, 2),
+        );
+        throw new Error(
+          `Google API respondió con status ${response.status}: ${
+            (errorData?.message as string | undefined) ?? 'Error desconocido'
+          }`,
+        );
       }
 
-      // Extraer el texto de la respuesta cruda de Google
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      type GeminiCandidate = { content?: { parts?: Array<{ text?: string }> } };
+      const text: string = String(
+        (data.candidates as GeminiCandidate[])?.[0]?.content?.parts?.[0]
+          ?.text || '',
+      );
 
       // Limpiar backticks si Gemini los envía por error
-      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanedText);
+      const cleanedText = text
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+      const parsed = JSON.parse(cleanedText) as Record<string, unknown>;
 
       return {
-        nombre: parsed.nombre || null,
-        curp: parsed.curp || null,
+        nombre: (parsed.nombre as string) || null,
+        curp: (parsed.curp as string) || null,
         valido: !!(parsed.nombre && parsed.curp),
       };
-    } catch (error: any) {
-      this.logger.error('Fallo en la validación:', error.message);
+    } catch (error) {
+      const e = error as Error;
+      this.logger.error('Fallo en la validación:', e.message);
 
       return {
         nombre: null,
         curp: null,
         valido: false,
-        motivoRechazo: `Fallo la IA: ${error.message}`,
+        motivoRechazo: `Fallo la IA: ${e.message}`,
       };
     }
   }
 }
-

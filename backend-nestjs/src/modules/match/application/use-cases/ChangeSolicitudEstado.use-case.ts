@@ -37,8 +37,8 @@ export class ChangeSolicitudEstadoUseCase {
 
     // Validate allowed transitions
     const validTransitions: Record<string, string[]> = {
-      'PENDIENTE': ['ACEPTADA', 'RECHAZADA'],
-      'ACEPTADA': ['COMPLETADA'],
+      PENDIENTE: ['ACEPTADA', 'RECHAZADA'],
+      ACEPTADA: ['COMPLETADA'],
     };
 
     const allowed = validTransitions[solicitud.estado];

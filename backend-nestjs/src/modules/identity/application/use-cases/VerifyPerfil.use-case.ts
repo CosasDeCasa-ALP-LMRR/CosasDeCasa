@@ -33,13 +33,14 @@ export class VerifyPerfilUseCase {
     });
 
     if (nuevoEstado === 'RECHAZADO' || nuevoEstado === 'APROBADO') {
-      const documentos = await this.documentoRepository.findByPerfilId(perfilId);
+      const documentos =
+        await this.documentoRepository.findByPerfilId(perfilId);
       for (const doc of documentos) {
         if (doc.tipo === 'INE' || doc.tipo === 'CEDULA') {
           // Primero borramos de S3 / Local
           await this.storageAdapter.deleteFile(doc.urlArchivo).catch((e) => {
-             // Ignorar si el archivo no existe, pero registrarlo
-             console.error(`Error deleting physical file ${doc.urlArchivo}:`, e);
+            // Ignorar si el archivo no existe, pero registrarlo
+            console.error(`Error deleting physical file ${doc.urlArchivo}:`, e);
           });
           // Luego borramos de la DB
           await this.documentoRepository.delete(doc.id);
