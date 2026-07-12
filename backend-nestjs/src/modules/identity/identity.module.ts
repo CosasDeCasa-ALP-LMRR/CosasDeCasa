@@ -67,7 +67,7 @@ import { DataLifecycleCronService } from './application/services/DataLifecycleCr
       useFactory: () => ({
         secret: process.env.JWT_SECRET ?? 'cambiar-en-produccion',
         signOptions: {
-          expiresIn: (process.env.JWT_EXPIRES_IN ?? '7d') as any,
+          expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
         },
       }),
     }),

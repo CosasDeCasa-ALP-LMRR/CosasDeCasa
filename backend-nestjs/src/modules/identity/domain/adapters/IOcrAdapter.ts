@@ -13,5 +13,8 @@ export interface OcrResult {
 }
 
 export abstract class IOcrAdapter {
-  abstract extractIdentityData(fileBuffer: Buffer, mimeType: string): Promise<OcrResult>;
+  abstract extractIdentityData(
+    fileBuffer: Buffer,
+    mimeType: string,
+  ): Promise<OcrResult>;
 }

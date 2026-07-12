@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma.service';
+import { Prisma } from '@prisma/client';
 import { ProfesionalCardResponseDto } from '../../../identity/application/dtos/response/ProfesionalCard.response-dto';
 import { SearchQueryDto } from '../dtos/SearchQuery.dto';
 
@@ -7,10 +8,12 @@ import { SearchQueryDto } from '../dtos/SearchQuery.dto';
 export class SearchService {
   constructor(private prisma: PrismaService) {}
 
-  async searchProfessionals(query: SearchQueryDto): Promise<ProfesionalCardResponseDto[]> {
+  async searchProfessionals(
+    query: SearchQueryDto,
+  ): Promise<ProfesionalCardResponseDto[]> {
     const { q, category, minRating } = query;
 
-    const filters: any = {
+    const filters: Prisma.PerfilWhereInput = {
       estadoVerificacion: 'APROBADO',
       usuario: {
         activo: true,
@@ -31,7 +34,7 @@ export class SearchService {
     if (q) {
       try {
         // PostgreSQL: Convert array to string and search case-insensitively
-        const result = await this.prisma.$queryRaw<{id: string}[]>`
+        const result = await this.prisma.$queryRaw<{ id: string }[]>`
           SELECT id FROM "Perfil" 
           WHERE array_to_string(etiquetas, ' ') ILIKE ${'%' + q + '%'}
         `;
@@ -45,7 +48,7 @@ export class SearchService {
         { municipio: { contains: q, mode: 'insensitive' } },
         { estadoRep: { contains: q, mode: 'insensitive' } },
         { usuario: { nombre: { contains: q, mode: 'insensitive' } } },
-        ...(tagMatchIds.length > 0 ? [{ id: { in: tagMatchIds } }] : [])
+        ...(tagMatchIds.length > 0 ? [{ id: { in: tagMatchIds } }] : []),
       ];
     }
 

@@ -26,7 +26,7 @@ export class SendContactMessageUseCase {
   constructor(private readonly whatsAppGateway: IWhatsAppGateway) {}
 
   async execute(input: SendContactMessageInput): Promise<void> {
-    const { telefonoProfesionista, nombreCliente, mensaje } = input;
+    const { telefonoProfesionista, mensaje } = input;
 
     await this.whatsAppGateway.sendTextMessage({
       destinatario: telefonoProfesionista,

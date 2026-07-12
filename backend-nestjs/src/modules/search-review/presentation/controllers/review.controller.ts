@@ -1,4 +1,17 @@
-import { Controller, Post, Get, Param, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import type { Request as ExpressRequest } from 'express';
+
+interface RequestWithUser extends ExpressRequest {
+  user: { id: string; role?: string };
+}
 import { ReviewService } from '../../application/services/review.service';
 import { CreateReviewDto } from '../../application/dtos/CreateReview.dto';
 import { JwtAuthGuard } from '../../../identity/presentation/guards/jwt-auth.guard';
@@ -13,7 +26,7 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('CLIENTE')
   async createReview(
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Param('profesionalId') profesionalId: string,
     @Body() dto: CreateReviewDto,
   ) {
@@ -22,7 +35,9 @@ export class ReviewController {
   }
 
   @Get(':profesionalId')
-  async getReviewsByProfessional(@Param('profesionalId') profesionalId: string) {
+  async getReviewsByProfessional(
+    @Param('profesionalId') profesionalId: string,
+  ) {
     return this.reviewService.getReviewsByProfessional(profesionalId);
   }
 }

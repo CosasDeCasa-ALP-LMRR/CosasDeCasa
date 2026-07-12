@@ -12,6 +12,8 @@ import { PrismaService } from '../../../../database/prisma.service';
 import {
   Perfil as PrismaPerfil,
   Documento as PrismaDocumento,
+  EstadoVerificacion,
+  Prisma,
 } from '@prisma/client';
 
 @Injectable()
@@ -82,7 +84,7 @@ export class PrismaPerfilRepository implements IPerfilRepository {
         municipio: perfil.municipio,
         estadoRep: perfil.estadoRep,
         aceptaUrgencias: perfil.aceptaUrgencias,
-        estadoVerificacion: perfil.estadoVerificacion as any,
+        estadoVerificacion: perfil.estadoVerificacion as EstadoVerificacion,
         promedioCalificacion: perfil.promedioCalificacion,
         diasYHorarios: perfil.diasYHorarios || undefined,
       },
@@ -97,7 +99,7 @@ export class PrismaPerfilRepository implements IPerfilRepository {
         municipio: perfil.municipio,
         estadoRep: perfil.estadoRep,
         aceptaUrgencias: perfil.aceptaUrgencias,
-        estadoVerificacion: perfil.estadoVerificacion as any,
+        estadoVerificacion: perfil.estadoVerificacion as EstadoVerificacion,
         promedioCalificacion: perfil.promedioCalificacion,
         diasYHorarios: perfil.diasYHorarios || undefined,
       },
@@ -108,7 +110,7 @@ export class PrismaPerfilRepository implements IPerfilRepository {
   }
 
   async update(id: string, data: Partial<DomainPerfil>): Promise<DomainPerfil> {
-    const updateData: any = {};
+    const updateData: Prisma.PerfilUpdateInput = {};
     if (data.telefono !== undefined) updateData.telefono = data.telefono;
     if (data.biografia !== undefined) updateData.biografia = data.biografia;
     if (data.categoriaPrincipal !== undefined)
@@ -121,7 +123,8 @@ export class PrismaPerfilRepository implements IPerfilRepository {
     if (data.aceptaUrgencias !== undefined)
       updateData.aceptaUrgencias = data.aceptaUrgencias;
     if (data.estadoVerificacion !== undefined)
-      updateData.estadoVerificacion = data.estadoVerificacion as any;
+      updateData.estadoVerificacion =
+        data.estadoVerificacion as EstadoVerificacion;
     if (data.promedioCalificacion !== undefined)
       updateData.promedioCalificacion = data.promedioCalificacion;
     if (data.diasYHorarios !== undefined)

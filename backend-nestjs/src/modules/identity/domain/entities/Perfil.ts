@@ -19,7 +19,7 @@ export class Perfil {
     public aceptaUrgencias: boolean,
     public estadoVerificacion: string, // 'PENDIENTE', 'APROBADO', 'RECHAZADO'
     public promedioCalificacion: number,
-    public diasYHorarios: any | null, // Configuración de disponibilidad
-    public documentos?: any[],
+    public diasYHorarios: unknown, // Configuración de disponibilidad
+    public documentos?: unknown[],
   ) {}
 }

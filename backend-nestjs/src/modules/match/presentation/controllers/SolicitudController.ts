@@ -12,8 +12,14 @@ import {
   Param,
   Body,
   Req,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import type { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: { id: string; role?: string };
+}
 import { JwtAuthGuard } from '../../../identity/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../identity/presentation/guards/roles.guard';
 import { Roles } from '../../../identity/presentation/guards/roles.decorator';
@@ -34,9 +40,11 @@ export class SolicitudController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('CLIENTE')
-  async createSolicitud(@Req() req: any, @Body() dto: CreateSolicitudDto) {
+  async createSolicitud(
+    @Req() req: RequestWithUser,
+    @Body() dto: CreateSolicitudDto,
+  ) {
     return await this.createSolicitudUseCase.execute(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       req.user.id,
       dto.profesionalId,
       dto.descripcion ?? '',
@@ -48,8 +56,7 @@ export class SolicitudController {
   @Get('recibidas')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
-  async getSolicitudesRecibidas(@Req() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+  async getSolicitudesRecibidas(@Req() req: RequestWithUser) {
     return await this.getSolicitudesRecibidasUseCase.execute(req.user.id);
   }
 
@@ -57,13 +64,12 @@ export class SolicitudController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
   async changeEstado(
-    @Req() req: any,
+    @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() dto: ChangeSolicitudEstadoDto,
   ) {
     return await this.changeSolicitudEstadoUseCase.execute(
       id,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       req.user.id,
       dto.estado,
       dto.motivoRechazo,

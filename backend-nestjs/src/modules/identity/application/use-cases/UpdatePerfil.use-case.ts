@@ -12,7 +12,7 @@
  *          Esto preserva la separación entre capa de dominio y capa de presentación.
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { IPerfilRepository } from '../../domain/repositories/IPerfilRepository';
 import { Perfil } from '../../domain/entities/Perfil';
@@ -27,7 +27,10 @@ export class UpdatePerfilUseCase {
     private readonly getPerfilUseCase: GetPerfilUseCase,
   ) {}
 
-  async execute(usuarioId: string, dto: UpdatePerfilDto): Promise<MiPerfilResponseDto> {
+  async execute(
+    usuarioId: string,
+    dto: UpdatePerfilDto,
+  ): Promise<MiPerfilResponseDto> {
     // 1. Obtener entidad de dominio desde el repositorio
     let perfilEntity = await this.perfilRepository.findByUsuarioId(usuarioId);
 
@@ -37,8 +40,17 @@ export class UpdatePerfilUseCase {
         new Perfil(
           randomUUID(),
           usuarioId,
-          null, null, null, [], null, null, null,
-          false, 'PENDIENTE', 0.0, null,
+          null,
+          null,
+          null,
+          [],
+          null,
+          null,
+          null,
+          false,
+          'PENDIENTE',
+          0.0,
+          null,
         ),
       );
     }

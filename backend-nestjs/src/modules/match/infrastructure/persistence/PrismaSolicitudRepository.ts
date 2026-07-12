@@ -33,7 +33,7 @@ export class PrismaSolicitudRepository implements ISolicitudRepository {
       prismaSolicitud.fechaActualizacion,
       prismaSolicitud.cliente?.nombre,
       prismaSolicitud.cliente?.correo,
-      prismaSolicitud.telefonoCliente ?? undefined,
+      (prismaSolicitud.telefonoCliente as string | undefined) ?? undefined,
     );
   }
 
@@ -89,13 +89,20 @@ export class PrismaSolicitudRepository implements ISolicitudRepository {
     return solicitudes.map((solicitud) => this.mapToDomain(solicitud));
   }
 
-  async updateEstado(id: string, estado: string, motivoRechazo?: string): Promise<DomainSolicitud> {
+  async updateEstado(
+    id: string,
+    estado: string,
+    motivoRechazo?: string,
+  ): Promise<DomainSolicitud> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const dataToUpdate: any = { estado: estado as any };
     if (motivoRechazo) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       dataToUpdate.motivoRechazo = motivoRechazo;
     }
     const prismaSolicitud = await this.prismaService.solicitud.update({
       where: { id },
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       data: dataToUpdate,
       include: {
         cliente: {

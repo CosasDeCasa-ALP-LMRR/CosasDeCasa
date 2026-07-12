@@ -24,7 +24,8 @@ export class LocalStorageAdapter implements IStorageAdapter {
   async saveFile(
     fileBuffer: Buffer,
     fileName: string,
-    mimeType: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _mimeType: string,
   ): Promise<string> {
     const fileExtension = path.extname(fileName);
     const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExtension}`;
