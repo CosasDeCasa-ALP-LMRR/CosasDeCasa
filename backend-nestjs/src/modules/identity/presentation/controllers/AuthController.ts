@@ -38,6 +38,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: { id: string; role?: string };
+  cookies: Record<string, string>;
+}
+
+interface MulterFile {
+  buffer: Buffer;
+  originalname: string;
+  mimetype: string;
+}
 import { Throttle } from '@nestjs/throttler'; // RNF3 (Agustin Parra)
 import { RegisterDto } from '../../application/dtos/Register.dto';
 import { LoginDto } from '../../application/dtos/Login.dto';
@@ -66,7 +77,7 @@ export class AuthController {
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     @Inject(IRefreshTokenRepository)
     private readonly refreshTokenRepository: IRefreshTokenRepository,
-  ) { }
+  ) {}
 
   /**
    * Obtiene la información del usuario autenticado basado en su JWT.
@@ -75,7 +86,7 @@ export class AuthController {
    */
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getMe(@Req() req: any) {
+  async getMe(@Req() req: RequestWithUser) {
     // JwtAuthGuard pone en req.user: { id, role } (payload del JWT)
     const usuario = await this.prisma.usuario.findUnique({
       where: { id: req.user.id },
@@ -104,7 +115,10 @@ export class AuthController {
   @Post('foto-perfil')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFotoPerfil(@Req() req: any, @UploadedFile() file: any) {
+  async uploadFotoPerfil(
+    @Req() req: RequestWithUser,
+    @UploadedFile() file: MulterFile,
+  ) {
     if (!file) {
       throw new BadRequestException('El archivo de imagen es requerido');
     }
@@ -188,9 +202,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const rawRefreshToken: string | undefined = (req as any).cookies?.[
-      'refresh_token'
-    ];
+    const rawRefreshToken: string | undefined = (req as RequestWithUser)
+      .cookies?.['refresh_token'];
     if (!rawRefreshToken) {
       throw new UnauthorizedException(
         'Refresh token no encontrado. Por favor, inicia sesión.',
@@ -223,9 +236,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     // Revocar el refresh token activo en BD si existe
-    const rawRefreshToken: string | undefined = (req as any).cookies?.[
-      'refresh_token'
-    ];
+    const rawRefreshToken: string | undefined = (req as RequestWithUser)
+      .cookies?.['refresh_token'];
     if (rawRefreshToken) {
       const tokenHash = createHash('sha256')
         .update(rawRefreshToken)

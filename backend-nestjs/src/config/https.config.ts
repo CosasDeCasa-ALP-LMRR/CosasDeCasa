@@ -2,7 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as selfsigned from 'selfsigned';
 
-export async function getHttpsOptions(): Promise<{ key: string; cert: string } | undefined> {
+export async function getHttpsOptions(): Promise<
+  { key: string; cert: string } | undefined
+> {
   if (process.env.NODE_ENV === 'production') {
     return undefined; // In production, we assume a reverse proxy like Nginx handles HTTPS
   }
@@ -31,7 +33,7 @@ export async function getHttpsOptions(): Promise<{ key: string; cert: string } |
 
     fs.writeFileSync(keyPath, key);
     fs.writeFileSync(certPath, cert);
-    
+
     // Also save public key just in case it's needed
     fs.writeFileSync(path.join(certsDir, 'localhost.pub'), pems.public);
   }

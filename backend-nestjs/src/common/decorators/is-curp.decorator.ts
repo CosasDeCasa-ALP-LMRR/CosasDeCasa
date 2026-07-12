@@ -25,7 +25,7 @@ export class IsCURPConstraint implements ValidatorConstraintInterface {
  * y no pueden ser eludidas deshabilitando JavaScript en el navegador.
  */
 export function IsCURPMexicano(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,

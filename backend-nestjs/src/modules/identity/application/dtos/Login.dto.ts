@@ -23,6 +23,8 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty({ message: 'La contraseña es requerida' })
-  @MaxLength(30, { message: 'La contraseña no puede superar los 30 caracteres' })
+  @MaxLength(30, {
+    message: 'La contraseña no puede superar los 30 caracteres',
+  })
   password: string;
 }

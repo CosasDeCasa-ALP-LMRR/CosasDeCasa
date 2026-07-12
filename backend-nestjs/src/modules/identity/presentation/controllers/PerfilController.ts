@@ -32,6 +32,17 @@ import {
   BadRequestException,
   Inject,
 } from '@nestjs/common';
+import type { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: { id: string; role?: string };
+}
+
+interface MulterFile {
+  buffer: Buffer;
+  originalname: string;
+  mimetype: string;
+}
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -73,7 +84,7 @@ export class PerfilController {
   @Get('mi')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
-  async getMiPerfil(@Req() req: any) {
+  async getMiPerfil(@Req() req: RequestWithUser) {
     return await this.getPerfilUseCase.executeByUsuarioId(req.user.id);
   }
 
@@ -95,14 +106,20 @@ export class PerfilController {
   @Patch('cancelaciones/:id/aprobar')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUDITOR')
-  async aprobarCancelacion(@Req() req: any, @Param('id') id: string) {
+  async aprobarCancelacion(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
     const auditorId = req.user.id;
-    this.logger.info(`Auditor ${auditorId} approved cancellation for profile ${id}`, {
-      context: 'Auditor',
-      autorId: auditorId,
-      accion: 'APPROVE_CANCELLATION',
-      afectadoId: id,
-    });
+    this.logger.info(
+      `Auditor ${auditorId} approved cancellation for profile ${id}`,
+      {
+        context: 'Auditor',
+        autorId: auditorId,
+        accion: 'APPROVE_CANCELLATION',
+        afectadoId: id,
+      },
+    );
     await this.approveCancelacionUseCase.execute(id);
     return {
       message: 'Cancelación aprobada y cuenta anonimizada correctamente',
@@ -124,7 +141,10 @@ export class PerfilController {
   @Put()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PROFESIONAL')
-  async updatePerfil(@Req() req: any, @Body() dto: UpdatePerfilDto) {
+  async updatePerfil(
+    @Req() req: RequestWithUser,
+    @Body() dto: UpdatePerfilDto,
+  ) {
     return await this.updatePerfilUseCase.execute(req.user.id, dto);
   }
 
@@ -133,8 +153,8 @@ export class PerfilController {
   @Roles('PROFESIONAL')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocumento(
-    @Req() req: any,
-    @UploadedFile() file: any,
+    @Req() req: RequestWithUser,
+    @UploadedFile() file: MulterFile,
     @Body('tipo') tipo: string,
     @Body('consentimientoIA') consentimientoIA?: string,
   ) {
@@ -154,7 +174,7 @@ export class PerfilController {
       file.originalname,
       file.mimetype,
       tipo,
-      consentimientoIA === 'true'
+      consentimientoIA === 'true',
     );
   }
 
@@ -162,7 +182,7 @@ export class PerfilController {
   @UseGuards(JwtAuthGuard, RolesGuard, DocumentoOwnerGuard)
   @Roles('PROFESIONAL')
   async deleteDocumento(
-    @Req() req: any,
+    @Req() req: RequestWithUser,
     @Param('documentoId') documentoId: string,
   ) {
     await this.deleteDocumentoUseCase.execute(req.user.id, documentoId);
@@ -173,24 +193,27 @@ export class PerfilController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUDITOR')
   async verifyPerfil(
-    @Req() req: any,
+    @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() dto: VerifyPerfilDto,
   ) {
     const auditorId = req.user.id;
-    this.logger.info(`Auditor ${auditorId} set verification status to ${dto.estado} for profile ${id}`, {
-      context: 'Auditor',
-      autorId: auditorId,
-      accion: `VERIFY_PROFILE_${dto.estado}`,
-      afectadoId: id,
-    });
+    this.logger.info(
+      `Auditor ${auditorId} set verification status to ${dto.estado} for profile ${id}`,
+      {
+        context: 'Auditor',
+        autorId: auditorId,
+        accion: `VERIFY_PROFILE_${dto.estado}`,
+        afectadoId: id,
+      },
+    );
     return await this.verifyPerfilUseCase.execute(id, dto.estado);
   }
 
   @Delete('cuenta')
   @UseGuards(JwtAuthGuard)
   async cancelAccount(
-    @Req() req: any,
+    @Req() req: RequestWithUser,
     @Body('justificacion') justificacion: string,
   ) {
     if (!justificacion) {

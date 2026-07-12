@@ -9,7 +9,7 @@ import { Injectable } from '@nestjs/common';
 import { IDocumentoRepository } from '../../domain/repositories/IDocumentoRepository';
 import { Documento as DomainDocumento } from '../../domain/entities/Documento';
 import { PrismaService } from '../../../../database/prisma.service';
-import { Documento as PrismaDocumento } from '@prisma/client';
+import { Documento as PrismaDocumento, TipoDocumento } from '@prisma/client';
 
 @Injectable()
 export class PrismaDocumentoRepository implements IDocumentoRepository {
@@ -47,14 +47,14 @@ export class PrismaDocumentoRepository implements IDocumentoRepository {
       where: { id: documento.id },
       update: {
         perfilId: documento.perfilId,
-        tipo: documento.tipo as any,
+        tipo: documento.tipo as TipoDocumento,
         urlArchivo: documento.urlArchivo,
         fechaSubida: documento.fechaSubida,
       },
       create: {
         id: documento.id,
         perfilId: documento.perfilId,
-        tipo: documento.tipo as any,
+        tipo: documento.tipo as TipoDocumento,
         urlArchivo: documento.urlArchivo,
         fechaSubida: documento.fechaSubida,
       },

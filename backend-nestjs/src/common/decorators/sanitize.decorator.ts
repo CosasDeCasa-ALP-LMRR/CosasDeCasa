@@ -21,7 +21,7 @@ const STRICT_XSS_OPTIONS: xss.IFilterXSSOptions = {
 function sanitizeValue(value: unknown): unknown {
   if (typeof value === 'string') {
     const normalized = value.normalize('NFC'); // Normaliza caracteres Unicode equivalentes
-    const trimmed = normalized.trim();         // Elimina espacios en blanco extremos
+    const trimmed = normalized.trim(); // Elimina espacios en blanco extremos
     return xss.filterXSS(trimmed, STRICT_XSS_OPTIONS);
   }
 
@@ -40,4 +40,3 @@ function sanitizeValue(value: unknown): unknown {
 export function Sanitize() {
   return Transform(({ value }) => sanitizeValue(value));
 }
-

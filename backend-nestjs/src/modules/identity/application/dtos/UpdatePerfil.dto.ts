@@ -16,35 +16,50 @@
  *          - etiquetas[]: máx 50 chars por elemento
  */
 
-import { IsString, IsOptional, IsArray, IsBoolean, MaxLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 import { Sanitize } from '../../../../common/decorators/sanitize.decorator';
 
 export class UpdatePerfilDto {
   @IsOptional()
   @IsString()
   @MaxLength(20, { message: 'El teléfono no puede superar los 20 caracteres' })
-  @Matches(/^[\+]?[\d\s\-\(\)]{7,20}$/, {
-    message: 'El teléfono solo puede contener dígitos, espacios, +, guiones y paréntesis (ej. +52 55 1234 5678)',
+  @Matches(/^[+]?[\d\s\-()]{7,20}$/, {
+    message:
+      'El teléfono solo puede contener dígitos, espacios, +, guiones y paréntesis (ej. +52 55 1234 5678)',
   })
   @Sanitize()
   telefono?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000, { message: 'La biografía no puede superar los 1000 caracteres' })
+  @MaxLength(1000, {
+    message: 'La biografía no puede superar los 1000 caracteres',
+  })
   @Sanitize()
   biografia?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100, { message: 'La categoría principal no puede superar los 100 caracteres' })
+  @MaxLength(100, {
+    message: 'La categoría principal no puede superar los 100 caracteres',
+  })
   @Sanitize()
   categoriaPrincipal?: string;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @MaxLength(50, { each: true, message: 'Cada etiqueta no puede superar los 50 caracteres' })
+  @MaxLength(50, {
+    each: true,
+    message: 'Cada etiqueta no puede superar los 50 caracteres',
+  })
   @Sanitize()
   etiquetas?: string[];
 

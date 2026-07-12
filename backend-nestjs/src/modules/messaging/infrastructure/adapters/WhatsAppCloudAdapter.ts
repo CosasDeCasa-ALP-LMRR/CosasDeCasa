@@ -12,9 +12,16 @@
  *  - Las credenciales NUNCA se exponen en las respuestas hacia el frontend.
  */
 
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IWhatsAppGateway, SendMessagePayload } from '../../domain/ports/IWhatsAppGateway';
+import {
+  IWhatsAppGateway,
+  SendMessagePayload,
+} from '../../domain/ports/IWhatsAppGateway';
 import * as https from 'https';
 
 @Injectable()
@@ -25,9 +32,16 @@ export class WhatsAppCloudAdapter implements IWhatsAppGateway {
   private readonly apiVersion: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.accessToken = this.configService.getOrThrow<string>('WHATSAPP_ACCESS_TOKEN');
-    this.phoneNumberId = this.configService.getOrThrow<string>('WHATSAPP_PHONE_NUMBER_ID');
-    this.apiVersion = this.configService.get<string>('WHATSAPP_API_VERSION', 'v21.0');
+    this.accessToken = this.configService.getOrThrow<string>(
+      'WHATSAPP_ACCESS_TOKEN',
+    );
+    this.phoneNumberId = this.configService.getOrThrow<string>(
+      'WHATSAPP_PHONE_NUMBER_ID',
+    );
+    this.apiVersion = this.configService.get<string>(
+      'WHATSAPP_API_VERSION',
+      'v21.0',
+    );
   }
 
   /**
@@ -78,21 +92,37 @@ export class WhatsAppCloudAdapter implements IWhatsAppGateway {
 
       const req = https.request(options, (res) => {
         let data = '';
-        res.on('data', (chunk) => { data += chunk; });
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
         res.on('end', () => {
           if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            this.logger.log(`WhatsApp API respondió con HTTP ${res.statusCode}`);
+            this.logger.log(
+              `WhatsApp API respondió con HTTP ${res.statusCode}`,
+            );
             resolve();
           } else {
-            this.logger.error(`WhatsApp API error HTTP ${res.statusCode}: ${data}`);
-            reject(new InternalServerErrorException('Error al enviar el mensaje de WhatsApp'));
+            this.logger.error(
+              `WhatsApp API error HTTP ${res.statusCode}: ${data}`,
+            );
+            reject(
+              new InternalServerErrorException(
+                'Error al enviar el mensaje de WhatsApp',
+              ),
+            );
           }
         });
       });
 
       req.on('error', (err) => {
-        this.logger.error(`Error de red al conectar con WhatsApp API: ${err.message}`);
-        reject(new InternalServerErrorException('No se pudo conectar con el servicio de mensajería'));
+        this.logger.error(
+          `Error de red al conectar con WhatsApp API: ${err.message}`,
+        );
+        reject(
+          new InternalServerErrorException(
+            'No se pudo conectar con el servicio de mensajería',
+          ),
+        );
       });
 
       req.write(body);

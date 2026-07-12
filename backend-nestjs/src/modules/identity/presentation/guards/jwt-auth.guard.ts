@@ -21,11 +21,12 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     @Inject(IJwtAdapter)
     private readonly jwtAdapter: IJwtAdapter,
-  ) { }
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token: string | undefined = request.cookies?.['access_token'];
+    const cookies = request.cookies as Record<string, string> | undefined;
+    const token: string | undefined = cookies?.['access_token'];
 
     if (!token) {
       throw new UnauthorizedException(

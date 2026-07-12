@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma.service';
 import { CreateReviewDto } from '../dtos/CreateReview.dto';
 
@@ -6,7 +10,11 @@ import { CreateReviewDto } from '../dtos/CreateReview.dto';
 export class ReviewService {
   constructor(private prisma: PrismaService) {}
 
-  async createReview(clienteId: string, profesionalId: string, dto: CreateReviewDto) {
+  async createReview(
+    clienteId: string,
+    profesionalId: string,
+    dto: CreateReviewDto,
+  ) {
     const profesional = await this.prisma.usuario.findUnique({
       where: { id: profesionalId },
       include: { perfil: true },

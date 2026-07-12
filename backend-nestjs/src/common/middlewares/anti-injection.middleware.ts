@@ -1,10 +1,15 @@
-import { Injectable, NestMiddleware, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 /**
  * @fileoverview Middleware global para prevenir inyecciones SQL y NoSQL.
  * @requirement RNF9: Prevención de Inyecciones
- * 
+ *
  * Este middleware escanea los payloads entrantes en busca de firmas
  * peligrosas comúnmente usadas en ataques de inyección de bases de datos.
  */
@@ -13,18 +18,25 @@ export class AntiInjectionMiddleware implements NestMiddleware {
   private readonly logger = new Logger(AntiInjectionMiddleware.name);
 
   // Expresiones regulares que detectan firmas peligrosas de inyección SQL y NoSQL
-  private readonly sqlInjectionPattern = /(--|;|\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|OR 1=1)\b)/i;
-  private readonly noSqlInjectionPattern = /(\$where|\$ne|\$gt|\$lt|\$regex|\$in|\$nin|\$or|\$and)/i;
+  private readonly sqlInjectionPattern =
+    /(--|;|\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|OR 1=1)\b)/i;
+  private readonly noSqlInjectionPattern =
+    /(\$where|\$ne|\$gt|\$lt|\$regex|\$in|\$nin|\$or|\$and)/i;
 
   use(req: Request, res: Response, next: NextFunction) {
-    if (this.containsInjection(req.body) || 
-        this.containsInjection(req.query) || 
-        this.containsInjection(req.params)) {
-      
-      this.logger.warn(`Intento de inyección bloqueado desde la IP: ${req.ip}. URL: ${req.originalUrl}`);
-      throw new BadRequestException('El contenido de la petición contiene caracteres o patrones no permitidos por seguridad.');
+    if (
+      this.containsInjection(req.body) ||
+      this.containsInjection(req.query) ||
+      this.containsInjection(req.params)
+    ) {
+      this.logger.warn(
+        `Intento de inyección bloqueado desde la IP: ${req.ip}. URL: ${req.originalUrl}`,
+      );
+      throw new BadRequestException(
+        'El contenido de la petición contiene caracteres o patrones no permitidos por seguridad.',
+      );
     }
-    
+
     next();
   }
 
@@ -35,7 +47,10 @@ export class AntiInjectionMiddleware implements NestMiddleware {
     if (!obj) return false;
 
     if (typeof obj === 'string') {
-      return this.sqlInjectionPattern.test(obj) || this.noSqlInjectionPattern.test(obj);
+      return (
+        this.sqlInjectionPattern.test(obj) ||
+        this.noSqlInjectionPattern.test(obj)
+      );
     }
 
     if (typeof obj === 'object') {
@@ -46,7 +61,7 @@ export class AntiInjectionMiddleware implements NestMiddleware {
             return true;
           }
           // Evaluar los valores
-          if (this.containsInjection(obj[key])) {
+          if (this.containsInjection((obj as Record<string, unknown>)[key])) {
             return true;
           }
         }

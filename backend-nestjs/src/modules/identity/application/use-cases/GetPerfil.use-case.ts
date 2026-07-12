@@ -80,7 +80,12 @@ export class GetPerfilUseCase {
       estadoRep: perfil.estadoRep,
       diasYHorarios: perfil.diasYHorarios,
       portafolio: perfil.documentos.map(
-        (d) => new DocumentoPublicoDto({ id: d.id, tipo: d.tipo, urlArchivo: d.urlArchivo }),
+        (d) =>
+          new DocumentoPublicoDto({
+            id: d.id,
+            tipo: d.tipo,
+            urlArchivo: d.urlArchivo,
+          }),
       ),
     });
   }
@@ -106,7 +111,7 @@ export class GetPerfilUseCase {
         usuario: {
           select: {
             nombre: true,
-            correo: true,   // el profesional necesita ver su propio correo
+            correo: true, // el profesional necesita ver su propio correo
             fotoPerfil: true,
             // passwordHash, activo, fechaCreacion, rol — EXCLUIDOS
           },
@@ -151,7 +156,12 @@ export class GetPerfilUseCase {
             select: { nombre: true, correo: true, fotoPerfil: true },
           },
           documentos: {
-            select: { id: true, tipo: true, urlArchivo: true, fechaSubida: true },
+            select: {
+              id: true,
+              tipo: true,
+              urlArchivo: true,
+              fechaSubida: true,
+            },
           },
         },
       });

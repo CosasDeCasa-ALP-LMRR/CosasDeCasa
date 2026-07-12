@@ -13,11 +13,11 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
-import { AuthenticatedUser } from '../../../../common/types/authenticated-request.interface';
+import { AuthenticatedRequest } from '../../../../common/types/authenticated-request.interface';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
@@ -27,8 +27,8 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const request = context.switchToHttp().getRequest();
-    const user = request.user as AuthenticatedUser | undefined;
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const user = request.user;
 
     if (!user || !requiredRoles.includes(user.role)) {
       throw new ForbiddenException(

@@ -12,7 +12,12 @@ import { RolesGuard } from '../identity/presentation/guards/roles.guard';
 @Module({
   imports: [PrismaModule, IdentityModule],
   controllers: [SearchController, ReviewController],
-  providers: [PerfilEventosListener, SearchService, ReviewService, JwtAuthGuard, RolesGuard],
+  providers: [
+    PerfilEventosListener,
+    SearchService,
+    ReviewService,
+    JwtAuthGuard,
+    RolesGuard,
+  ],
 })
 export class SearchReviewModule {}
-

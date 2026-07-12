@@ -12,15 +12,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
+import { Request } from 'express';
 
 @Injectable()
 export class MockAuthGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const userId = request.headers['x-user-id'];
-    const userRole = request.headers['x-user-role'];
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: { id: string; role: string } }>();
+    const userId = request.headers['x-user-id'] as string | undefined;
+    const userRole = request.headers['x-user-role'] as string | undefined;
 
     if (!userId || !userRole) {
       throw new UnauthorizedException(

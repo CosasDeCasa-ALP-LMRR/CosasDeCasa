@@ -37,7 +37,8 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'El nombre es requerido' })
   @MaxLength(80, { message: 'El nombre no puede superar los 80 caracteres' })
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, {
-    message: 'El nombre solo puede contener letras y espacios. Caracteres especiales no permitidos.',
+    message:
+      'El nombre solo puede contener letras y espacios. Caracteres especiales no permitidos.',
   })
   @Sanitize()
   nombre: string;
@@ -49,10 +50,11 @@ export class RegisterDto {
 
   @IsString()
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
-  @MaxLength(30, { message: 'La contraseña no puede superar los 30 caracteres' })
+  @MaxLength(30, {
+    message: 'La contraseña no puede superar los 30 caracteres',
+  })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).+$/, {
-    message:
-      'La contraseña debe contener al menos una letra y un número',
+    message: 'La contraseña debe contener al menos una letra y un número',
   })
   password: string;
 

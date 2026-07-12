@@ -12,16 +12,17 @@ const sensitiveKeys = [
   'token',
 ];
 
-const sanitizeObject = (obj: any) => {
+const sanitizeObject = (obj: unknown) => {
   if (typeof obj !== 'object' || obj === null) {
     return;
   }
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+  const record = obj as Record<string, unknown>;
+  for (const key in record) {
+    if (Object.prototype.hasOwnProperty.call(record, key)) {
       if (sensitiveKeys.includes(key.toLowerCase())) {
-        obj[key] = '[CENSORED]';
-      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-        sanitizeObject(obj[key]);
+        record[key] = '[CENSORED]';
+      } else if (typeof record[key] === 'object' && record[key] !== null) {
+        sanitizeObject(record[key]);
       }
     }
   }

@@ -35,7 +35,8 @@ export class CreateSolicitudDto {
   @IsOptional()
   @IsString()
   @Matches(/^\+?[1-9]\d{6,14}$/, {
-    message: 'El teléfono debe ser un número válido en formato internacional (ej. +524151234567)',
+    message:
+      'El teléfono debe ser un número válido en formato internacional (ej. +524151234567)',
   })
   telefonoCliente?: string;
 }
