@@ -1,40 +1,19 @@
-# ---- Base Node ----
-FROM node:22.2.0-alpine AS base
+# ---- Producción (single-stage, más compatible con Back4App) ----
+FROM node:22.2.0-alpine
 WORKDIR /app
 
-# ---- Dependencias ----
-FROM base AS deps
+# Instalar dependencias
 COPY package.json package-lock.json ./
-# Instalar dependencias (incluyendo devDependencies para build)
 RUN npm ci
 
-# ---- Build ----
-FROM base AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copiar código fuente
 COPY . .
 
-# Generar Prisma Client
+# Generar Prisma Client y compilar TypeScript
 RUN npx prisma generate
-
-# Compilar NestJS
 RUN npm run build
-
-# Eliminar dependencias de desarrollo para aligerar la imagen
-RUN npm prune --production
-
-# ---- Producción ----
-FROM base AS prod
-WORKDIR /app
-ENV NODE_ENV=production
-
-# Copiar build, dependencias y prisma
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/prisma ./prisma
 
 EXPOSE 3000
 
-# Script de arranque: Solo corre migraciones e inicia el server (el seed se ejecutó una sola vez)
+# Arranque: aplicar migraciones e iniciar la app compilada
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
