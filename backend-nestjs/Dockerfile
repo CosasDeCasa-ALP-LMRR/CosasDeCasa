@@ -4,17 +4,17 @@ WORKDIR /app
 
 # Instalar dependencias
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
-# CACHEBUST fuerza a Back4App a no usar capas cacheadas de builds anteriores
-ARG CACHEBUST=1
+# CACHEBUST fuerza a Back4App a reconstruir
+ARG CACHEBUST=123456789
 
 # Copiar código fuente
 COPY . .
 
 # Generar Prisma Client y compilar TypeScript
 RUN npx prisma generate
-RUN npm run build
+RUN npx nest build
 
 EXPOSE 3000
 
