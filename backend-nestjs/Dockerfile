@@ -14,9 +14,9 @@ COPY . .
 
 # Generar Prisma Client y compilar TypeScript
 RUN npx prisma generate
-RUN npx nest build
+RUN npx tsc -p tsconfig.build.json
 
 EXPOSE 3000
 
 # Arranque: aplicar migraciones e iniciar la app compilada
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "ls -la && ls -la dist && npx prisma migrate deploy && node dist/main.js"]
