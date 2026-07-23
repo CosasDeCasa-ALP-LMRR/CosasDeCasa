@@ -6,6 +6,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# CACHEBUST fuerza a Back4App a no usar capas cacheadas de builds anteriores
+ARG CACHEBUST=1
+
 # Copiar código fuente
 COPY . .
 
