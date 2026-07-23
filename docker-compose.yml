@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cosasdecasa_db
+    environment:
+      POSTGRES_DB: cosasdecasa_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend-nestjs
+      dockerfile: Dockerfile
+    container_name: cosasdecasa_backend
+    env_file:
+      - ./backend-nestjs/.env
+    environment:
+      - DATABASE_URL=postgresql://admin:adminpassword@db:5432/cosasdecasa_db?schema=public
+      - DIRECT_URL=postgresql://admin:adminpassword@db:5432/cosasdecasa_db?schema=public
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend-nestjs/src:/app/src
+      - ./backend-nestjs/uploads:/app/uploads
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile
+    container_name: cosasdecasa_frontend
+    environment:
+      - VITE_BACKEND_URL=https://backend:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend-react/src:/app/src
+      - ./frontend-react/public:/app/public
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
