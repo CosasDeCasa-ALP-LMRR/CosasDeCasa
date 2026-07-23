@@ -36,5 +36,5 @@ COPY --from=build /app/prisma ./prisma
 
 EXPOSE 3000
 
-# Script de arranque: Corre migraciones, ejecuta el seed, e inicia el server
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main.js"]
+# Script de arranque: Solo corre migraciones e inicia el server (el seed se ejecutó una sola vez)
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
