@@ -85,7 +85,7 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Error al subir el archivo');
+      setError(err.message || 'Error al subir el archivo, intentalo de nuevo');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
