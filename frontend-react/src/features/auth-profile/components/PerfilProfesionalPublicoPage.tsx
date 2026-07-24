@@ -5,18 +5,17 @@
  */
 import { useEffect, useState } from 'react';
 import {
-  Star, MapPin, Zap, Loader2, Phone, Mail,
-  ArrowLeft, User, Folder, ShieldCheck,
+  Star, MapPin, Zap, Loader2, Mail,
+  ArrowLeft, User, Folder,
   FileText, CheckCircle, AlertCircle
 } from 'lucide-react';
 import { ImageCarousel } from './ImageCarousel';
 import { sanitizeText } from '../../../context/sanitize';
 import { getPerfilPublico } from '../services/perfil.service';
-import { createSolicitud } from '../services/solicitud.service';
 import { obtenerResenas, crearResena } from '../../search-review/services/review.service';
 import { useAuth } from '../../../context/AuthContext';
 import styles from './PerfilProfesionalPublicoPage.module.css';
-import type { PerfilPublico, ProfesionalCard } from '../types/perfil.types';
+import type { PerfilPublico } from '../types/perfil.types';
 import { SolicitudModal } from '../../cliente/components/SolicitudModal';
 import type { Resena } from '../../search-review/services/review.service';
 
@@ -113,7 +112,7 @@ export function PerfilProfesionalPublicoPage() {
 
     setSubmittingReview(true);
     try {
-      const nuevaResena = await crearResena(perfil.usuarioId, {
+      await crearResena(perfil.usuarioId, {
         calificacion: reviewScore,
         comentario: reviewComment || undefined,
       });
@@ -467,9 +466,9 @@ export function PerfilProfesionalPublicoPage() {
             categoriaPrincipal: perfil.categoriaPrincipal,
             etiquetas: perfil.etiquetas,
             promedioCalificacion: perfil.promedioCalificacion,
-            estadoVerificacion: 'APROBADO', // We default it for public profiles
             aceptaUrgencias: perfil.aceptaUrgencias,
-            cantidadResenas: 0,
+            municipio: perfil.municipio,
+            estadoRep: perfil.estadoRep,
           }}
           onClose={() => setIsModalOpen(false)}
         />

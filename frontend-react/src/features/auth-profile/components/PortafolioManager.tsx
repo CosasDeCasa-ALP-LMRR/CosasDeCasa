@@ -12,9 +12,8 @@ import {
   Info,
   Sparkles,
   X,
-  CheckCircle2,
 } from 'lucide-react';
-import type { Documento } from '../types/perfil.types';
+import type { DocumentoPublico } from '../types/perfil.types';
 import type { EstadoVerificacion } from '../types/perfil.types';
 import { TIPOS_DOCUMENTO } from '../types/perfil.types';
 import { uploadDocumento, deleteDocumento } from '../services/perfil.service';
@@ -22,8 +21,8 @@ import { ImageCarousel } from './ImageCarousel';
 import styles from './PortafolioManager.module.css';
 
 interface Props {
-  documentos: Documento[];
-  onUpdate: (docs: Documento[]) => void;
+  documentos: DocumentoPublico[];
+  onUpdate: (docs: DocumentoPublico[]) => void;
   estadoVerificacion?: EstadoVerificacion;
   onReEvaluacion?: (estado: EstadoVerificacion) => void;
 }
@@ -65,10 +64,9 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
       const result = await uploadDocumento(file, selectedTipo, consentimientoIA);
 
       if (result.documento) {
-        const newDoc: Documento = {
+        const newDoc: DocumentoPublico = {
           id: result.documento.id,
-          perfilId: '',
-          tipo: result.documento.tipo as any,
+          tipo: result.documento.tipo as string,
           urlArchivo: result.documento.urlArchivo,
           fechaSubida: new Date().toISOString(),
         };
@@ -94,7 +92,7 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
     }
   };
 
-  const handleDelete = async (doc: Documento) => {
+  const handleDelete = async (doc: DocumentoPublico) => {
     setDeletingId(doc.id);
     setError(null);
     try {
@@ -107,7 +105,8 @@ export function PortafolioManager({ documentos, onUpdate, estadoVerificacion, on
     }
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return '';
     try {
       return new Date(dateStr).toLocaleDateString('es-MX', {
         day: '2-digit',

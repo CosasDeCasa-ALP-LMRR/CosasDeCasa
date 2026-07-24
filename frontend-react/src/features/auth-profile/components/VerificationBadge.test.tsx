@@ -1,7 +1,8 @@
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { VerificationBadge } from './VerificationBadge';
-import type { EstadoVerificacion } from '../../types/perfil.types';
+import type { EstadoVerificacion } from '../types/perfil.types';
 
 describe('VerificationBadge Component', () => {
   it('debe renderizar correctamente con el estado PENDIENTE', () => {
