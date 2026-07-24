@@ -34,9 +34,10 @@ async function bootstrap() {
   
   app.enableCors({
     origin: [
-      'https://cosasdecasa.vercel.app', // Frontend en Vercel (producción)
-      'https://localhost:5173',          // Frontend local (desarrollo con HTTPS)
-      'http://localhost:5173',           // Frontend local (desarrollo sin HTTPS)
+      'https://cosasdecasa.vercel.app',          // Frontend en Vercel (producción)
+      'https://relaxed-quokka-c6bd0e.netlify.app', // Frontend en Netlify (producción)
+      'https://localhost:5173',                   // Frontend local (desarrollo con HTTPS)
+      'http://localhost:5173',                    // Frontend local (desarrollo sin HTTPS)
     ],
     credentials: true, // Requerido para enviar cookies HttpOnly (JWT)
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
