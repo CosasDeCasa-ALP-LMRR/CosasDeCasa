@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Eye, Loader2, Shield, UserCheck, UserX, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import api from '../../../lib/axios';
 import styles from './AuditorDashboardPage.module.css';
 
 interface Usuario {
@@ -54,42 +55,28 @@ export function AuditorDashboardPage() {
 
   const fetchPendientes = async () => {
     try {
-      const res = await fetch('/identity/perfiles/pendientes', {
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Error al cargar perfiles pendientes');
-      const data = await res.json();
+      const { data } = await api.get<PerfilPendiente[]>('/identity/perfiles/pendientes');
       setPerfiles(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     }
   };
 
   const fetchCancelaciones = async () => {
     try {
-      const res = await fetch('/identity/perfiles/cancelaciones/pendientes', {
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Error al cargar cancelaciones pendientes');
-      const data = await res.json();
+      const { data } = await api.get<SolicitudCancelacion[]>('/identity/perfiles/cancelaciones/pendientes');
       setCancelaciones(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     }
   };
 
   const handleVerificar = async (id: string, estado: 'APROBADO' | 'RECHAZADO') => {
     try {
-      const res = await fetch(`/identity/perfiles/${id}/verificacion`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado }),
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Error al verificar perfil');
+      await api.patch(`/identity/perfiles/${id}/verificacion`, { estado });
       setPerfiles(prev => prev.filter(p => p.id !== id));
     } catch (err: any) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message);
     }
   };
 
@@ -100,17 +87,11 @@ export function AuditorDashboardPage() {
     }
 
     try {
-      const res = await fetch(`/identity/perfiles/cancelaciones/${solicitudId}/aprobar`, {
-        method: 'PATCH',
-        credentials: 'include',
-      });
-      
-      if (!res.ok) throw new Error('Error al aprobar la cancelación');
-      
+      await api.patch(`/identity/perfiles/cancelaciones/${solicitudId}/aprobar`);
       setCancelaciones(prev => prev.filter(c => c.id !== solicitudId));
       alert('Cuenta anonimizada correctamente (Derechos ARCO completados).');
     } catch (err: any) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message);
     }
   };
 
