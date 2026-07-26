@@ -56,9 +56,10 @@ jobs:
             const r = JSON.parse(fs.readFileSync('test-results.json','utf8'));
             const lines = [];
             for (const suite of r.testResults || []) {
-              const file = suite.testFilePath.replace(process.cwd()+'/', '');
+              const rawPath = suite.name || suite.testFilePath || 'unknown';
+              const file = rawPath.replace(process.cwd()+'/', '');
               const type = file.includes('.spec.') ? 'Unitaria' : file.includes('e2e') ? 'E2E' : 'Integración';
-              for (const t of suite.testResults || []) {
+              for (const t of (suite.assertionResults || suite.testResults || [])) {
                 const icon = t.status === 'passed' ? '✅' : t.status === 'failed' ? '❌' : '⏭️';
                 const ancestors = (t.ancestorTitles||[]).join(' › ');
                 lines.push(\"| \" + type + \" | \" + file + \" | \" + ancestors + \" | \" + t.title + \" | \" + icon + \" \" + t.status + \" |\");
