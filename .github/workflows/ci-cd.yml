@@ -33,9 +33,55 @@ jobs:
         working-directory: ./backend-nestjs
         run: npx prisma generate
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests (Backend)
         working-directory: ./backend-nestjs
-        run: npm run test
+        run: |
+          npm run test -- \
+            --verbose \
+            --reporters=default \
+            --reporters=json \
+            --outputFile=test-results.json \
+            --testNamePattern='.' 2>&1 | tee test-output.txt
+        continue-on-error: true
+
+      - name: Publish Backend Test Summary
+        if: always()
+        working-directory: ./backend-nestjs
+        run: |
+          echo "## 🧪 Backend – Resultados de Pruebas" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tipo | Archivo | Suite | Test | Resultado |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|---------|-------|------|-----------|" >> $GITHUB_STEP_SUMMARY
+          node -e "
+            const fs = require('fs');
+            if (!fs.existsSync('test-results.json')) { console.log('No results file found'); process.exit(0); }
+            const r = JSON.parse(fs.readFileSync('test-results.json','utf8'));
+            const lines = [];
+            for (const suite of r.testResults || []) {
+              const file = suite.testFilePath.replace(process.cwd()+'/', '');
+              const type = file.includes('.spec.') ? 'Unitaria' : file.includes('e2e') ? 'E2E' : 'Integración';
+              for (const t of suite.testResults || []) {
+                const icon = t.status === 'passed' ? '✅' : t.status === 'failed' ? '❌' : '⏭️';
+                const ancestors = (t.ancestorTitles||[]).join(' › ');
+                lines.push(\"| \" + type + \" | \" + file + \" | \" + ancestors + \" | \" + t.title + \" | \" + icon + \" \" + t.status + \" |\");
+              }
+            }
+            const passed = r.numPassedTests || 0;
+            const failed = r.numFailedTests || 0;
+            const total  = r.numTotalTests  || 0;
+            process.stdout.write(lines.join('\n') + '\n');
+            process.stdout.write('\n**Total:** ' + total + ' | ✅ ' + passed + ' pasaron | ❌ ' + failed + ' fallaron\n');
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if tests failed
+        working-directory: ./backend-nestjs
+        run: |
+          node -e "
+            const fs = require('fs');
+            if (!fs.existsSync('test-results.json')) process.exit(1);
+            const r = JSON.parse(fs.readFileSync('test-results.json','utf8'));
+            process.exit(r.numFailedTests > 0 ? 1 : 0);
+          "
 
   test-frontend:
     name: Frontend Tests
@@ -55,9 +101,55 @@ jobs:
         working-directory: ./frontend-react
         run: npm ci --legacy-peer-deps
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests (Frontend)
         working-directory: ./frontend-react
-        run: npm run test
+        run: |
+          npm run test -- \
+            --reporter=verbose \
+            --reporter=json \
+            --outputFile=test-results.json 2>&1 | tee test-output.txt
+        continue-on-error: true
+
+      - name: Publish Frontend Test Summary
+        if: always()
+        working-directory: ./frontend-react
+        run: |
+          echo "## 🎨 Frontend – Resultados de Pruebas" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tipo | Archivo | Suite | Test | Resultado |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|---------|-------|------|-----------|" >> $GITHUB_STEP_SUMMARY
+          node -e "
+            const fs = require('fs');
+            if (!fs.existsSync('test-results.json')) { console.log('No results file found'); process.exit(0); }
+            const r = JSON.parse(fs.readFileSync('test-results.json','utf8'));
+            const lines = [];
+            for (const suite of (r.testResults || r.files || [])) {
+              const file = (suite.name || suite.filepath || '').replace(process.cwd()+'/', '');
+              const type = file.includes('.test.') ? 'Componente' : file.includes('e2e') ? 'E2E' : 'Unitaria';
+              for (const t of (suite.tests || suite.assertionResults || [])) {
+                const status = t.result || t.status;
+                const icon = status === 'pass' || status === 'passed' ? '✅' : status === 'fail' || status === 'failed' ? '❌' : '⏭️';
+                const ancestors = (t.suiteName ? [t.suiteName] : t.ancestorTitles || []).join(' › ');
+                lines.push(\"| \" + type + \" | \" + file + \" | \" + ancestors + \" | \" + (t.name || t.title) + \" | \" + icon + \" \" + status + \" |\");
+              }
+            }
+            const passed = r.numPassedTests || r.passCount || 0;
+            const failed = r.numFailedTests || r.failCount || 0;
+            const total  = r.numTotalTests  || r.testCount || 0;
+            process.stdout.write(lines.join('\n') + '\n');
+            process.stdout.write('\n**Total:** ' + total + ' | ✅ ' + passed + ' pasaron | ❌ ' + failed + ' fallaron\n');
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if tests failed
+        working-directory: ./frontend-react
+        run: |
+          node -e "
+            const fs = require('fs');
+            if (!fs.existsSync('test-results.json')) process.exit(1);
+            const r = JSON.parse(fs.readFileSync('test-results.json','utf8'));
+            const failed = r.numFailedTests || r.failCount || 0;
+            process.exit(failed > 0 ? 1 : 0);
+          "
 
   deploy-frontend:
     name: Deploy Frontend to Netlify
