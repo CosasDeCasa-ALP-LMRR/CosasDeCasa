@@ -38,10 +38,8 @@ jobs:
         run: |
           npm run test -- \
             --verbose \
-            --reporters=default \
-            --reporters=json \
-            --outputFile=test-results.json \
-            --testNamePattern='.' 2>&1 | tee test-output.txt
+            --json \
+            --outputFile=test-results.json 2>&1 | tee test-output.txt
         continue-on-error: true
 
       - name: Publish Backend Test Summary
