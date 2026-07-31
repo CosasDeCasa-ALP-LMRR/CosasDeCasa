@@ -21,7 +21,7 @@ export class JwtAdapter implements IJwtAdapter {
   constructor(private readonly jwtService: JwtService) {}
 
   sign(payload: Record<string, unknown>): string {
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload as any);
   }
 
   verify(token: string): JwtPayload {
@@ -29,11 +29,11 @@ export class JwtAdapter implements IJwtAdapter {
   }
 
   signRefresh(payload: Record<string, unknown>): string {
-    return this.jwtService.sign(payload, {
+    return this.jwtService.sign(payload as any, {
       secret:
         process.env.JWT_REFRESH_SECRET ??
         'refresh-secret-cambiar-en-produccion',
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ?? '30d') as any,
     });
   }
 

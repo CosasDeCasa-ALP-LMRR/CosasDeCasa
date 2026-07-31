@@ -128,7 +128,7 @@ export class PrismaPerfilRepository implements IPerfilRepository {
     if (data.promedioCalificacion !== undefined)
       updateData.promedioCalificacion = data.promedioCalificacion;
     if (data.diasYHorarios !== undefined)
-      updateData.diasYHorarios = data.diasYHorarios;
+      updateData.diasYHorarios = data.diasYHorarios as any;
 
     const prismaPerfil = await this.prismaService.perfil.update({
       where: { id },
