@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db-cosasdecasa:
+    image: postgres:15-alpine
+    container_name: cosasdecasa_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: cosasdecasa_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_cosasdecasa:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend-nestjs
+      dockerfile: Dockerfile
+    container_name: cosasdecasa_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://admin:adminpassword@db-cosasdecasa:5432/cosasdecasa_db?schema=public
+      - DIRECT_URL=postgresql://admin:adminpassword@db-cosasdecasa:5432/cosasdecasa_db?schema=public
+      - JWT_SECRET=supersecretjwt
+      - JWT_EXPIRES_IN=7d
+      - JWT_REFRESH_SECRET=supersecretrefresh
+      - JWT_REFRESH_EXPIRES_IN=30d
+    volumes:
+      - ./backend-nestjs:/app
+      - /app/node_modules
+    depends_on:
+      - db-cosasdecasa
+    # Opcionalmente, para que Prisma migre automáticamente al iniciar, podríamos sobrescribir el comando:
+    # command: sh -c "npx prisma migrate dev && npm run start:dev"
+
+  frontend:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile
+    container_name: cosasdecasa_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - BACKEND_URL=https://backend:3000
+    volumes:
+      - ./frontend-react:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  pgdata_cosasdecasa:
