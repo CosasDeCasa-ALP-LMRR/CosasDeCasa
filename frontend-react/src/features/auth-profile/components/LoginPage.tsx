@@ -130,7 +130,7 @@ export function LoginPage({ onGoRegister }: Props) {
     try {
       await login({ correo: sanitizeText(correo, 100), password });
       await loginCtx();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       // Incrementar contador de intentos fallidos
       const newAttempts = failedAttempts + 1;
