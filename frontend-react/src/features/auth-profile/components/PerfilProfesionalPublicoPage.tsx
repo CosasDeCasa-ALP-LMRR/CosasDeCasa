@@ -467,6 +467,8 @@ export function PerfilProfesionalPublicoPage() {
             etiquetas: perfil.etiquetas,
             promedioCalificacion: perfil.promedioCalificacion,
             aceptaUrgencias: perfil.aceptaUrgencias,
+            municipio: perfil.municipio || '',
+            estadoRep: perfil.estadoRep || '',
           }}
           onClose={() => setIsModalOpen(false)}
         />
