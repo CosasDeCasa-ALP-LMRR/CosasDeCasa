@@ -145,7 +145,7 @@ export function RegisterPage({ onGoLogin, defaultRole = 'CLIENTE' }: Props) {
       setSuccess(true);
       // Redirigir al login después de mostrar el mensaje de éxito
       setTimeout(() => onGoLogin(), 1800);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       setError(err.message ?? 'Error al crear la cuenta');
     } finally {

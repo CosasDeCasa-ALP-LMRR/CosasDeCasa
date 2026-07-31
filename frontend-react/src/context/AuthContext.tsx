@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Verificar sesión al montar la app
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void checkSession();
   }, [checkSession]);
 

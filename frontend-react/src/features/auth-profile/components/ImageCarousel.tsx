@@ -21,7 +21,7 @@ export function ImageCarousel({ images, initialIndex = 0 }: Props) {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
-  const CarouselContent = () => (
+  const renderCarouselContent = () => (
     <div className={isFullscreen ? styles.fullscreenContainer : styles.carouselContainer}>
       {isFullscreen && (
         <button className={styles.closeBtn} onClick={() => setIsFullscreen(false)}>
@@ -63,10 +63,10 @@ export function ImageCarousel({ images, initialIndex = 0 }: Props) {
   if (isFullscreen) {
     return (
       <div className={styles.fullscreenOverlay}>
-        <CarouselContent />
+        {renderCarouselContent()}
       </div>
     );
   }
 
-  return <CarouselContent />;
+  return renderCarouselContent();
 }
