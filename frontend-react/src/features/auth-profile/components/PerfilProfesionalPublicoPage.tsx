@@ -467,7 +467,6 @@ export function PerfilProfesionalPublicoPage() {
             etiquetas: perfil.etiquetas,
             promedioCalificacion: perfil.promedioCalificacion,
             aceptaUrgencias: perfil.aceptaUrgencias,
-            cantidadResenas: 0,
           }}
           onClose={() => setIsModalOpen(false)}
         />
