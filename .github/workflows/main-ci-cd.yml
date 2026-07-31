@@ -1,0 +1,77 @@
+name: CI/CD Completo
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Validar Frontend y Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias del Frontend
+        working-directory: ./frontend-react
+        run: npm ci --legacy-peer-deps
+
+      - name: Linter del Frontend
+        working-directory: ./frontend-react
+        run: npm run lint
+
+      - name: Pruebas unitarias del Frontend
+        working-directory: ./frontend-react
+        run: npm run test
+
+      - name: Instalar dependencias del Backend
+        working-directory: ./backend-nestjs
+        run: npm ci
+
+      - name: Build del Backend (TypeScript check)
+        working-directory: ./backend-nestjs
+        run: npm run build
+
+  deploy:
+    name: Desplegar a Producción (Render)
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Actualizar Base de Datos (Prisma)
+        working-directory: ./backend-nestjs
+        env:
+          DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.RENDER_DATABASE_URL }}
+        run: |
+          npm ci
+          npx prisma db push
+
+      - name: Desplegar Backend
+        run: |
+          echo "Disparando despliegue del Backend..."
+          curl -X POST -d "" ${{ secrets.RENDER_BACKEND_HOOK }}
+
+      - name: Desplegar Frontend
+        run: |
+          echo "Disparando despliegue del Frontend..."
+          curl -X POST -d "" ${{ secrets.RENDER_FRONTEND_HOOK }}
