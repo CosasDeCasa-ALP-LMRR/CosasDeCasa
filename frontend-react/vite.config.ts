@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
@@ -7,6 +8,10 @@ const targetUrl = process.env.BACKEND_URL || 'https://localhost:3000';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), basicSsl()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
   server: {
     port: 5173,
     headers: {
