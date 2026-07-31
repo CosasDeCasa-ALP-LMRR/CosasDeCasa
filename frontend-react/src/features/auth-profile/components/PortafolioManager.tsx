@@ -12,7 +12,6 @@ import {
   Info,
   Sparkles,
   X,
-  CheckCircle2,
 } from 'lucide-react';
 import type { Documento } from '../types/perfil.types';
 import type { EstadoVerificacion } from '../types/perfil.types';
