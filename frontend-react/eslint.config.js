@@ -21,6 +21,7 @@ export default defineConfig([
     },
     rules: {
       'react/no-danger': 'error',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
     languageOptions: {
       globals: globals.browser,

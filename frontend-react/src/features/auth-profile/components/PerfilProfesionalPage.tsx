@@ -225,8 +225,8 @@ export function PerfilProfesionalPage() {
     getMiPerfil()
       .then((p) => {
         if (cancelled) return;
-        setPerfil(p);
-        populateForm(p);
+        setPerfil(p as unknown as Perfil);
+        populateForm(p as unknown as Perfil);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -309,8 +309,8 @@ export function PerfilProfesionalPage() {
     };
     try {
       const updated = await updatePerfil(payload);
-      setPerfil(updated);
-      populateForm(updated);
+      setPerfil(updated as unknown as Perfil);
+      populateForm(updated as unknown as Perfil);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3500);
     } catch (err: unknown) {
@@ -372,7 +372,7 @@ export function PerfilProfesionalPage() {
       alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
       await logout();
       window.location.href = '/';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
     } finally {

@@ -1,10 +1,18 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 
+const targetUrl = process.env.BACKEND_URL || 'https://localhost:3000';
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), basicSsl()],
+  // @ts-expect-error vitest augments the config with test, but tsc sometimes fails to pick it up
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
   server: {
     port: 5173,
     headers: {
@@ -14,32 +22,32 @@ export default defineConfig({
     proxy: {
       // Proxy /identity, /auth, /match and /uploads routes to NestJS backend
       '/identity': {
-        target: 'https://localhost:3000',
+        target: targetUrl,
         changeOrigin: true,
         secure: false,
       },
       '/auth': {
-        target: 'https://localhost:3000',
+        target: targetUrl,
         changeOrigin: true,
         secure: false,
       },
       '/match': {
-        target: 'https://localhost:3000',
+        target: targetUrl,
         changeOrigin: true,
         secure: false,
       },
       '/search': {
-        target: 'https://localhost:3000',
+        target: targetUrl,
         changeOrigin: true,
         secure: false,
       },
       '/messaging': {
-        target: 'https://localhost:3000',
+        target: targetUrl,
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'https://localhost:3000',
+        target: targetUrl,
         changeOrigin: true,
         secure: false,
       },

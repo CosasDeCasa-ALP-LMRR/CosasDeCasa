@@ -1,0 +1,84 @@
+name: CI/CD Completo
+
+on:
+  push:
+    branches:
+      - main
+      - test
+  pull_request:
+    branches:
+      - main
+      - test
+
+jobs:
+  test:
+    name: Validar Frontend y Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Levantar entorno local con Docker Compose
+        run: docker-compose up -d --build
+
+      - name: Esperar a que la base de datos esté lista
+        run: sleep 15
+
+      - name: Ejecutar migraciones de Prisma
+        run: docker exec cosasdecasa_backend npx prisma db push
+
+      - name: Configurar Node.js para Playwright
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Playwright y Navegadores
+        run: |
+          npm install -D @playwright/test
+          npx playwright install --with-deps
+
+      - name: Ejecutar Pruebas Automatizadas (Playwright)
+        run: npx playwright test
+
+      - name: Subir Reporte de Pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  deploy:
+    name: Desplegar a Producción (Render)
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Actualizar Base de Datos (Prisma)
+        working-directory: ./backend-nestjs
+        env:
+          DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.RENDER_DATABASE_URL }}
+        run: |
+          npm ci
+          npx prisma db push
+
+      - name: Desplegar Backend
+        run: |
+          echo "Disparando despliegue del Backend..."
+          curl -X POST -d "" ${{ secrets.RENDER_BACKEND_HOOK }}
+
+      - name: Desplegar Frontend
+        run: |
+          echo "Disparando despliegue del Frontend..."
+          curl -X POST -d "" ${{ secrets.RENDER_FRONTEND_HOOK }}

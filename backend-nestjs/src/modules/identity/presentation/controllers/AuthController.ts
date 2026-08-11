@@ -167,7 +167,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict' as const,
+      sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('strict' as const),
     };
 
     // RNF1: Access token — corta duración (según JWT_EXPIRES_IN)
@@ -217,7 +217,7 @@ export class AuthController {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       maxAge: 15 * 60 * 1000, // 15 minutos
     });
 
@@ -252,7 +252,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict' as const,
+      sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('strict' as const),
     };
 
     res.clearCookie('access_token', cookieOptions);

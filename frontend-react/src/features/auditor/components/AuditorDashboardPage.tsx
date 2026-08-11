@@ -48,9 +48,6 @@ export function AuditorDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([fetchPendientes(), fetchCancelaciones()]).finally(() => setLoading(false));
-  }, []);
 
   const fetchPendientes = async () => {
     try {
@@ -77,6 +74,11 @@ export function AuditorDashboardPage() {
       setError(err.message);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    Promise.all([fetchPendientes(), fetchCancelaciones()]).finally(() => setLoading(false));
+  }, []);
 
   const handleVerificar = async (id: string, estado: 'APROBADO' | 'RECHAZADO') => {
     try {

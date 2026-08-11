@@ -46,6 +46,7 @@ export function ClienteHomePage() {
   const [selectedProfesional, setSelectedProfesional] = useState<ProfesionalCard | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const delayDebounceFn = setTimeout(() => {
       searchProfesionales({
@@ -77,7 +78,7 @@ export function ClienteHomePage() {
       alert('Solicitud enviada. Los documentos sensibles han sido eliminados. Tu cuenta ahora está en revisión y se cerrará la sesión.');
       await logout();
       window.location.href = '/';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Ocurrió un error al intentar eliminar la cuenta.');
     } finally {

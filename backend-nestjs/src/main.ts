@@ -36,7 +36,8 @@ async function bootstrap() {
       'https://cosasdecasa.vercel.app', // Frontend en Vercel (producción)
       'https://localhost:5173', // Frontend local (desarrollo con HTTPS)
       'http://localhost:5173', // Frontend local (desarrollo sin HTTPS)
-    ],
+      process.env.FRONTEND_URL, // Permite configurar la URL de Render desde el dashboard
+    ].filter(Boolean) as string[],
     credentials: true, // Requerido para enviar cookies HttpOnly (JWT)
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -82,6 +83,6 @@ async function bootstrap() {
   // Serve uploads folder locally
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 void bootstrap();

@@ -61,11 +61,14 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
   }
 
   async update(id: string, data: Partial<Usuario>): Promise<Usuario> {
-    const prismaData: Prisma.UsuarioUpdateInput = { ...data };
-    if (data.rol) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      prismaData.rol = data.rol as any;
-    }
+    const prismaData: Prisma.UsuarioUpdateInput = {
+      nombre: data.nombre,
+      correo: data.correo,
+      passwordHash: data.passwordHash,
+      activo: data.activo,
+      curp: data.curp,
+      rol: data.rol ? (data.rol as any) : undefined,
+    };
     const prismaUsuario = await this.prismaService.usuario.update({
       where: { id },
       data: prismaData,
