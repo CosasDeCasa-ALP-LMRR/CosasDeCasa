@@ -23,8 +23,13 @@ jobs:
           echo "  backend:" >> docker-compose.override.yml
           echo "    command: sh -c 'npx prisma db push && npm run build && node dist/main'" >> docker-compose.override.yml
 
-      - name: Levantar entorno local con Docker Compose
-        run: docker compose up -d --build
+      - name: Levantar Base de Datos
+        run: |
+          docker compose up -d db-cosasdecasa
+          sleep 15
+
+      - name: Levantar Backend y Frontend
+        run: docker compose up -d --build backend frontend
 
       - name: Esperar a que el Backend esté respondiendo (Max 3 mins)
         run: |
@@ -38,6 +43,8 @@ jobs:
             sleep 5
           done
           echo "Error: El Backend no respondió a tiempo."
+          echo "--- LOGS DEL BACKEND ---"
+          docker logs cosasdecasa_backend
           exit 1
 
       - name: Configurar Node.js para Playwright
