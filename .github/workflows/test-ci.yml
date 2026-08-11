@@ -27,7 +27,7 @@ jobs:
         run: docker exec cosasdecasa_backend npx prisma db push
 
       - name: Esperar a que el Backend y Frontend estén listos
-        run: npx wait-on -k -i 2000 -t 120000 https-get://localhost:3000 https-get://localhost:5173
+        run: npx wait-on -i 2000 -t 180000 tcp:localhost:3000 tcp:localhost:5173
 
       - name: Configurar Node.js para Playwright
         uses: actions/setup-node@v4
