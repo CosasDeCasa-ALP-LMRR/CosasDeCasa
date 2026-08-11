@@ -26,6 +26,9 @@ jobs:
       - name: Ejecutar migraciones de Prisma
         run: docker exec cosasdecasa_backend npx prisma db push
 
+      - name: Esperar a que el Backend y Frontend estén listos
+        run: npx wait-on -k -t 120000 https://localhost:3000 https://localhost:5173
+
       - name: Configurar Node.js para Playwright
         uses: actions/setup-node@v4
         with:
