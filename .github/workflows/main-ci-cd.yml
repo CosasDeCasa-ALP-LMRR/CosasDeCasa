@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - test
   pull_request:
     branches:
       - main
-      - test
 
 jobs:
   test:
@@ -19,35 +17,30 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Levantar entorno local con Docker Compose
-        run: docker-compose up -d --build
-
-      - name: Esperar a que la base de datos esté lista
-        run: sleep 15
-
-      - name: Ejecutar migraciones de Prisma
-        run: docker exec cosasdecasa_backend npx prisma db push
-
-      - name: Configurar Node.js para Playwright
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Instalar Playwright y Navegadores
-        run: |
-          npm install -D @playwright/test
-          npx playwright install --with-deps
+      - name: Instalar dependencias del Frontend
+        working-directory: ./frontend-react
+        run: npm ci --legacy-peer-deps
 
-      - name: Ejecutar Pruebas Automatizadas (Playwright)
-        run: npx playwright test
+      - name: Linter del Frontend
+        working-directory: ./frontend-react
+        run: npm run lint
 
-      - name: Subir Reporte de Pruebas
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
+      - name: Pruebas unitarias del Frontend
+        working-directory: ./frontend-react
+        run: npm run test
+
+      - name: Instalar dependencias del Backend
+        working-directory: ./backend-nestjs
+        run: npm ci
+
+      - name: Build del Backend (TypeScript check)
+        working-directory: ./backend-nestjs
+        run: npm run build
 
   deploy:
     name: Desplegar a Producción (Render)
