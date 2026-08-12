@@ -32,11 +32,13 @@ export class WhatsAppCloudAdapter implements IWhatsAppGateway {
   private readonly apiVersion: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.accessToken = this.configService.getOrThrow<string>(
+    this.accessToken = this.configService.get<string>(
       'WHATSAPP_ACCESS_TOKEN',
+      '',
     );
-    this.phoneNumberId = this.configService.getOrThrow<string>(
+    this.phoneNumberId = this.configService.get<string>(
       'WHATSAPP_PHONE_NUMBER_ID',
+      '',
     );
     this.apiVersion = this.configService.get<string>(
       'WHATSAPP_API_VERSION',
