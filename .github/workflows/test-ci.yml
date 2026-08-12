@@ -1,0 +1,69 @@
+name: Pruebas Automatizadas (Playwright)
+
+on:
+  push:
+    branches:
+      - test
+  pull_request:
+    branches:
+      - test
+
+jobs:
+  test-e2e-api:
+    name: Ejecutar pruebas E2E y API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Optimizar arranque para CI
+        run: |
+          echo "services:" > docker-compose.override.yml
+          echo "  backend:" >> docker-compose.override.yml
+          echo "    command: sh -c 'npx prisma db push && npm run build && node dist/main'" >> docker-compose.override.yml
+
+      - name: Levantar Base de Datos
+        run: |
+          docker compose up -d db-cosasdecasa
+          sleep 15
+
+      - name: Levantar Backend y Frontend
+        run: docker compose up -d --build backend frontend
+
+      - name: Esperar a que el Backend esté respondiendo (Max 3 mins)
+        run: |
+          echo "Esperando a que la API devuelva 200 OK en https://localhost:3000..."
+          for i in {1..36}; do
+            if curl -k -s -o /dev/null -w "%{http_code}" https://localhost:3000 | grep -q "200"; then
+              echo "Backend ready!"
+              exit 0
+            fi
+            echo "Aún no responde, reintentando en 5 segundos..."
+            sleep 5
+          done
+          echo "Error: El Backend no respondió a tiempo."
+          echo "--- LOGS DEL BACKEND ---"
+          docker logs cosasdecasa_backend
+          exit 1
+
+      - name: Configurar Node.js para Playwright
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Playwright y Navegadores
+        run: |
+          npm install -D @playwright/test
+          npx playwright install --with-deps
+
+      - name: Ejecutar Pruebas Automatizadas (Playwright)
+        run: npx playwright test
+
+      - name: Subir Reporte de Pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
