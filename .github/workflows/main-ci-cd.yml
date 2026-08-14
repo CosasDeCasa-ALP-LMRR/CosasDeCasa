@@ -93,10 +93,11 @@ jobs:
       - name: Mostrar enlace de Producción
         run: |
           echo "✅ Despliegue completado con éxito."
-          echo "🌐 Puedes ver la aplicación en producción en tu URL de Render (Ej: https://cosasdecasa-front.onrender.com)."
+          echo " Ver app en produccion: https://cosasdecasa-front.onrender.com"
 
       - name: Recomendación en caso de fallo (Deploy)
         if: failure()
         run: |
           echo "::error title=❌ Error en Despliegue::El despliegue a Render o la actualización de base de datos falló."
           echo "::notice title=🛠️ Acción Requerida::Revisa la conexión a tu base de datos o los webhooks de Render. Corrige y vuelve a intentar."
+
