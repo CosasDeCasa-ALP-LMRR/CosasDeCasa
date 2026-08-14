@@ -161,6 +161,8 @@ export function LandingPublicHomePage() {
 
       {/* ══════════ HERO ══════════ */}
       <header className={styles.hero}>
+        {/* LCP Optimization: Preload the first background image */}
+        <link rel="preload" as="image" href={SLIDES[0].url} fetchPriority="high" />
 
         {/* Background slides */}
         <div className={styles.slides} aria-hidden="true">
