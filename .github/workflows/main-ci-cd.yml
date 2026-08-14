@@ -16,6 +16,13 @@ jobs:
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para ver el historial y archivos cambiados
+
+      - name: Mostrar archivos modificados
+        run: |
+          echo "📄 Archivos modificados en este cambio:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} || git diff --name-only HEAD~1 HEAD
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -41,6 +48,13 @@ jobs:
       - name: Build del Backend (TypeScript check)
         working-directory: ./backend-nestjs
         run: npm run build
+
+      - name: Recomendación en caso de fallo (Test/Build)
+        if: failure()
+        run: |
+          echo "::error title=❌ Error en CI/CD::El flujo de trabajo ha fallado. Se detectaron errores de compilación, linter o pruebas."
+          echo "::warning title=👉 Recomendación::Por favor, revisa los logs de los pasos anteriores para identificar el archivo y la línea del error."
+          echo "::notice title=🛠️ Acción Requerida::Corrige los errores localmente o deshace los cambios problemáticos, realiza un nuevo commit y vuelve a subir (git push) para intentar nuevamente."
 
   deploy:
     name: Desplegar a Producción (Render)
@@ -75,3 +89,14 @@ jobs:
         run: |
           echo "Disparando despliegue del Frontend..."
           curl -X POST -d "" ${{ secrets.RENDER_FRONTEND_HOOK }}
+
+      - name: Mostrar enlace de Producción
+        run: |
+          echo "✅ Despliegue completado con éxito."
+          echo "🌐 Puedes ver la aplicación en producción en tu URL de Render (Ej: https://cosasdecasa-front.onrender.com)."
+
+      - name: Recomendación en caso de fallo (Deploy)
+        if: failure()
+        run: |
+          echo "::error title=❌ Error en Despliegue::El despliegue a Render o la actualización de base de datos falló."
+          echo "::notice title=🛠️ Acción Requerida::Revisa la conexión a tu base de datos o los webhooks de Render. Corrige y vuelve a intentar."
