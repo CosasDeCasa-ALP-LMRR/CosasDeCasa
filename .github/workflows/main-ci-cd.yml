@@ -27,7 +27,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Instalar dependencias del Frontend
         working-directory: ./frontend-react
@@ -69,7 +69,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Actualizar Base de Datos (Prisma)
         working-directory: ./backend-nestjs
